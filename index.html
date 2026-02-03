@@ -3,16 +3,389 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>اختبار GitHub Pages</title>
+  <title>Dashboard | مبادرة العقل يتنفس</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    body{font-family:system-ui; padding:30px; background:#fff7fb;}
-    .box{background:#fff; padding:20px; border-radius:16px; box-shadow:0 10px 25px rgba(0,0,0,.08)}
+    :root{
+      --bg1:#fff3fb;
+      --bg2:#f3fff7;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --shadow:0 12px 30px rgba(0,0,0,.08);
+      --radius:18px;
+
+      --pink:#ff4fa3;
+      --mint:#1fcf88;
+      --sky:#3aa9ff;
+      --gold:#fbbf24;
+      --violet:#7c3aed;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(255,79,163,.18), transparent 60%),
+        radial-gradient(1200px 600px at 80% 0%, rgba(58,169,255,.18), transparent 60%),
+        radial-gradient(1200px 600px at 50% 90%, rgba(31,207,136,.16), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+    }
+
+    .wrap{ max-width:1200px; margin:0 auto; padding:24px; }
+
+    header{
+      display:flex; gap:16px; align-items:stretch; justify-content:space-between;
+      flex-wrap:wrap; margin-bottom:18px;
+    }
+
+    .hero{
+      flex: 1 1 620px;
+      background: rgba(255,255,255,.72);
+      backdrop-filter: blur(10px);
+      border:1px solid rgba(255,255,255,.7);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:18px;
+      overflow:hidden;
+    }
+
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px; border-radius:999px;
+      background: rgba(31,207,136,.12);
+      border:1px solid rgba(31,207,136,.28);
+      color:#0f5132; font-weight:900; font-size:13px;
+    }
+
+    .title{ margin:12px 0 6px; font-size:24px; font-weight:1000; }
+    .desc{ margin:0; color:var(--muted); line-height:1.75; font-size:14.5px; }
+
+    .metaRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.7);
+      font-size:13px; color:#1f2937; font-weight:900;
+    }
+
+    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center; }
+    button{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.85);
+      border-radius:999px;
+      padding:10px 14px;
+      font-weight:1000;
+      cursor:pointer;
+    }
+    button:hover{ filter: brightness(0.98); }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius:999px;
+      border:1px dashed rgba(124,58,237,.45);
+      background: rgba(124,58,237,.08);
+      color:#3b2a72; font-weight:1000; font-size:12.8px;
+    }
+
+    .status{ margin-top:10px; font-size:12px; color:var(--muted); }
+
+    .side{ flex: 0 1 360px; min-width:280px; display:grid; gap:12px; }
+    .panel{
+      background: rgba(255,255,255,.75);
+      backdrop-filter: blur(10px);
+      border:1px solid rgba(255,255,255,.7);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+    }
+    .panel h3{ margin:0 0 10px; font-size:14px; font-weight:1000; display:flex; gap:8px; }
+    .list{ margin:0; padding:0 18px 0 0; color:var(--muted); line-height:1.8; font-size:13.8px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:12px;
+      margin-top:12px;
+    }
+
+    .card{
+      grid-column: span 3;
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(8px);
+      border:1px solid rgba(255,255,255,.75);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+      overflow:hidden;
+    }
+    @media (max-width: 980px){ .card{ grid-column: span 6; } }
+    @media (max-width: 560px){ .card{ grid-column: span 12; } }
+
+    .label{
+      font-size:13px; color:var(--muted); font-weight:900;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .value{ margin-top:10px; font-size:30px; font-weight:1000; letter-spacing:.3px; }
+    .sub{ margin-top:6px; font-size:12.5px; color:var(--muted); line-height:1.6; }
+
+    .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; box-shadow:0 0 0 4px rgba(0,0,0,.04); }
+    .dot.pink{ background:var(--pink); }
+    .dot.mint{ background:var(--mint); }
+    .dot.sky{ background:var(--sky); }
+    .dot.gold{ background:var(--gold); }
+    .dot.violet{ background:var(--violet); }
+
+    .charts{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+      margin-top:12px;
+    }
+    .chartCard{
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(8px);
+      border:1px solid rgba(255,255,255,.75);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+      overflow:hidden;
+      min-height: 300px;
+    }
+    .chartTitle{
+      margin:0 0 10px;
+      font-size:14px;
+      font-weight:1000;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .small{ font-size:12px; color:var(--muted); font-weight:900; }
+
+    footer{ margin:16px 0 6px; text-align:center; color:var(--muted); font-size:12px; }
   </style>
 </head>
+
 <body>
-  <div class="box">
-    <h1>✅ الموقع يعمل</h1>
-    <p>إذا وصلتي لهالصفحة، نركّب بعدها داشبورد مبادرة العقل يتنفس.</p>
+  <div class="wrap">
+
+    <script>
+      // ✅ رابطك الحالي (CSV)
+      const DASHBOARD_CSV_URL =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0P4gppyX2dVoOF5zc4UL4COveSxNrYfPKpUh0ozItNQracEKuJu9Vjx_rGeHfwV8jB0DkkfWFTnfE/pub?output=csv";
+
+      // اختياري لاحقًا: إذا نشرتم ورقة timeline كـ CSV ضعي الرابط هنا
+      const TIMELINE_CSV_URL = ""; // مثال: ".../pub?gid=123&single=true&output=csv"
+    </script>
+
+    <header>
+      <section class="hero">
+        <span class="badge">🌿 وقف تعليمي ابتكاري</span>
+        <h1 class="title" id="initiativeName">مبادرة العقل يتنفس</h1>
+        <p class="desc" id="initiativeDesc">
+          مبادرة تعليمية تُنمّي التفكير والابتكار عبر مشاريع STEM باستخدام المحكّمات الدقيقة والمستشعرات،
+          لتحويل التعلم إلى تجربة تطبيقية ممتعة تُطلق الإبداع وتبني مهارات المستقبل.
+        </p>
+
+        <div class="metaRow">
+          <span class="chip">📅 النشأة: <span id="foundedYear">2018</span></span>
+          <span class="chip">🧠 المسار: STEM + ابتكار</span>
+          <span class="chip">🛠️ تمكين بالتقنية</span>
+        </div>
+
+        <div class="btnRow">
+          <button id="refreshBtn">تحديث البيانات الآن ↻</button>
+          <span class="pill">آخر تحديث: <span id="lastUpdated">—</span></span>
+        </div>
+
+        <div class="status" id="statusMsg">جاهز للتحميل…</div>
+      </section>
+
+      <aside class="side">
+        <div class="panel">
+          <h3>🎯 أهداف المبادرة</h3>
+          <ul class="list">
+            <li>تنمية التفكير العلمي والإبداعي لدى الطالبات.</li>
+            <li>تدريب عملي على المحكّمات الدقيقة والمستشعرات.</li>
+            <li>ربط المناهج بالتطبيق عبر مشاريع واقعية.</li>
+            <li>رفع الدافعية وتعزيز العمل التعاوني.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <h3>🧩 وصف المبادرة</h3>
+          <ul class="list">
+            <li>وقف تعليمي يوفر محكّمات دقيقة ومستشعرات لتمكين المشاريع.</li>
+            <li>احتضان أفكار الطالبات وتحويلها إلى نماذج أولية قابلة للعرض.</li>
+            <li>دعم المشاركات في المعارض والفعاليات العلمية.</li>
+          </ul>
+        </div>
+      </aside>
+    </header>
+
+    <!-- KPI Cards -->
+    <section class="grid">
+      <div class="card">
+        <div class="label"><span>عدد المشاريع</span><span class="dot pink"></span></div>
+        <div class="value" id="projectsCount">—</div>
+        <div class="sub">مشاريع STEM تم تنفيذها داخل المبادرة.</div>
+      </div>
+
+      <div class="card">
+        <div class="label"><span>عدد المستفيدين</span><span class="dot mint"></span></div>
+        <div class="value" id="beneficiariesCount">—</div>
+        <div class="sub">طالبات/مستفيدون من برامج المبادرة.</div>
+      </div>
+
+      <div class="card">
+        <div class="label"><span>عدد المشاركات/الفعاليات</span><span class="dot sky"></span></div>
+        <div class="value" id="eventsCount">—</div>
+        <div class="sub">مشاركات المبادرة في البرامج والمعارض.</div>
+      </div>
+
+      <div class="card">
+        <div class="label"><span>ساعات تعلم تطبيقي</span><span class="dot gold"></span></div>
+        <div class="value" id="trainingHours">—</div>
+        <div class="sub">ساعات تدريب/تطبيق وتجارب ومشاريع.</div>
+      </div>
+
+      <div class="card">
+        <div class="label"><span>محكّمات دقيقة</span><span class="dot violet"></span></div>
+        <div class="value" id="microcontrollersCount">—</div>
+        <div class="sub">Arduino / ESP وغيرها ضمن الوقف.</div>
+      </div>
+
+      <div class="card">
+        <div class="label"><span>مستشعرات</span><span class="dot mint"></span></div>
+        <div class="value" id="sensorsCount">—</div>
+        <div class="sub">ضوء/حركة/حرارة/غاز/رطوبة… إلخ.</div>
+      </div>
+
+      <div class="card">
+        <div class="label"><span>عدد المعلمات المشاركات</span><span class="dot sky"></span></div>
+        <div class="value" id="teachersCount">—</div>
+        <div class="sub">دعم وإشراف وتكامل مع فرق العمل.</div>
+      </div>
+
+      <div class="card">
+        <div class="label"><span>سنة النشأة</span><span class="dot gold"></span></div>
+        <div class="value" id="foundedYearCard">2018</div>
+        <div class="sub">تم تأسيس المبادرة في عام 2018.</div>
+      </div>
+    </section>
+
+    <!-- Chart (works حتى لو ما عندك timeline) -->
+    <section class="charts">
+      <div class="chartCard">
+        <div class="chartTitle">
+          <span>🍩 الموارد التقنية المتوفرة</span>
+          <span class="small" id="chartNote">مصدر البيانات: Google Sheet</span>
+        </div>
+        <canvas id="resourcesChart" height="120"></canvas>
+      </div>
+    </section>
+
+    <footer>© جميع الحقوق محفوظة — نوف خبتي</footer>
   </div>
-</body>
-</html>
+
+  <script>
+    function nowKSA(){
+      const d = new Date();
+      return d.toLocaleString("ar-SA", { hour12: true });
+    }
+
+    function parseCSV(text){
+      const rows = [];
+      let row = [];
+      let cur = "";
+      let inQuotes = false;
+
+      for(let i=0;i<text.length;i++){
+        const c = text[i];
+        const next = text[i+1];
+
+        if(c === '"' && inQuotes && next === '"'){ cur += '"'; i++; continue; }
+        if(c === '"'){ inQuotes = !inQuotes; continue; }
+
+        if(c === "," && !inQuotes){ row.push(cur); cur=""; continue; }
+
+        if((c === "\n" || c === "\r") && !inQuotes){
+          if(c === "\r" && next === "\n"){ i++; }
+          row.push(cur);
+          if(row.length > 1 || row[0] !== "") rows.push(row);
+          row = []; cur="";
+          continue;
+        }
+        cur += c;
+      }
+      row.push(cur);
+      if(row.length > 1 || row[0] !== "") rows.push(row);
+      return rows;
+    }
+
+    function toInt(x){
+      if(x == null) return 0;
+      const s = String(x).replace(/[^\d]/g, "");
+      return s ? parseInt(s, 10) : 0;
+    }
+
+    function setText(id, value){
+      const el = document.getElementById(id);
+      if(el) el.textContent = value;
+    }
+
+    function setStatus(msg){
+      document.getElementById("statusMsg").textContent = msg;
+    }
+
+    async function fetchCSV(url){
+      const res = await fetch(url, { cache: "no-store" });
+      if(!res.ok) throw new Error("تعذر جلب البيانات من الرابط.");
+      return await res.text();
+    }
+
+    // ✅ يدعم شكلين للشيت:
+    // 1) key,value
+    // 2) صف واحد Headers مثل: projectsCount,beneficiariesCount,...
+    function extractKPI(rows){
+      const header = rows[0] || [];
+      const lowerHeader = header.map(h => (h||"").trim().toLowerCase());
+
+      const isKeyValue =
+        lowerHeader.includes("key") && lowerHeader.includes("value");
+
+      if(isKeyValue){
+        const keyIdx = lowerHeader.indexOf("key");
+        const valIdx = lowerHeader.indexOf("value");
+        const map = {};
+        for(let i=1;i<rows.length;i++){
+          const r = rows[i] || [];
+          const k = (r[keyIdx] ?? "").trim();
+          const v = (r[valIdx] ?? "").trim();
+          if(k) map[k] = v;
+        }
+        return map;
+      }
+
+      // Wide format (row 2 has values)
+      const values = rows[1] || [];
+      const map = {};
+      for(let i=0;i<header.length;i++){
+        const k = (header[i] ?? "").trim();
+        if(!k) continue;
+        map[k] = (values[i] ?? "").trim();
+      }
+      return map;
+    }
+
+    function applyKPI(kpi){
+      // أسماء مفاتيح متوقعة — إذا كانت مختلفة في شيتك، بس غيّري
