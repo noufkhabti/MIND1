@@ -129,6 +129,35 @@
     @keyframes fadeDown{ from{ opacity:0; transform:translateY(-30px);} to{opacity:1; transform:none;} }
     @keyframes scaleIn{ from{ opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
 
+    /* Tabs transition */
+    .tabPane{ opacity:1; transform:none; transition: opacity .35s ease, transform .35s ease; }
+    .tabPane.hidden{ display:block; opacity:0; transform:translateY(10px); pointer-events:none; height:0; overflow:hidden; margin:0; padding:0; }
+    .tabPane.isHidden{ display:none !important; }
+
+    /* Lightbox */
+    .lb{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.75); z-index:9999; padding:18px; }
+    .lb.open{ display:flex; flex-direction:column; }
+    .lbStage{ width:min(1100px, 98vw); height:min(70vh, 560px); display:flex; align-items:center; justify-content:center; }
+    .lbMedia{ width:100%; height:100%; border:0; border-radius:18px; box-shadow:0 20px 50px rgba(0,0,0,.35); background:#111; object-fit:contain; }
+    .lbNav{ position:absolute; top:50%; transform:translateY(-50%); font-size:46px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); color:#fff; cursor:pointer; border-radius:999px; width:54px; height:54px; display:grid; place-items:center; }
+    .lbPrev{ left:16px; }
+    .lbNext{ right:16px; }
+    .lbClose{ position:absolute; top:12px; right:12px; width:44px; height:44px; border-radius:999px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:18px; }
+    .lbCaption{ color:#fff; margin-top:10px; text-align:center; opacity:.9; }
+    .lbThumbs{ width:min(1100px, 98vw); display:flex; gap:10px; overflow:auto; padding:12px 2px 4px; margin-top:10px; }
+    .lbThumbs::-webkit-scrollbar{ height:10px; }
+    .lbThumb{ flex:0 0 auto; width:86px; height:56px; border-radius:12px; border:2px solid rgba(255,255,255,.22); overflow:hidden; background:rgba(255,255,255,.08); cursor:pointer; opacity:.85; transition: transform .2s ease, opacity .2s ease, border-color .2s ease; }
+    .lbThumb:hover{ transform:translateY(-2px); opacity:1; }
+    .lbThumb.active{ border-color: rgba(236,72,153,.95); opacity:1; }
+    .lbThumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .lbThumb .play{ width:100%; height:100%; display:grid; place-items:center; color:#fff; font-size:18px; background:linear-gradient(135deg, rgba(236,72,153,.35), rgba(56,189,248,.25)); }
+
+    @media (max-width: 768px){
+      .lbStage{ height:min(56vh, 420px); }
+      .lbNav{ width:48px; height:48px; font-size:40px; }
+      .lbThumb{ width:74px; height:50px; }
+    }
+
     @media (prefers-reduced-motion: reduce){
       *{ animation:none!important; transition:none!important; }
     }
@@ -136,10 +165,19 @@
 </head>
 <body>
 <!-- Lightbox / Gallery -->
-<div id="lightbox" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);z-index:9999;">
-  <button id="lbPrev" style="position:absolute;left:20px;font-size:40px;background:none;border:none;color:#fff;cursor:pointer">❮</button>
-  <img id="lightboxImg" style="max-width:92%;max-height:92%;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.35);" />
-  <button id="lbNext" style="position:absolute;right:20px;font-size:40px;background:none;border:none;color:#fff;cursor:pointer">❯</button>
+<div id="lightbox" class="lb" aria-hidden="true">
+  <button id="lbClose" class="lbClose" aria-label="إغلاق">✕</button>
+  <button id="lbPrev" class="lbNav lbPrev" aria-label="السابق">❮</button>
+
+  <div class="lbStage">
+    <img id="lightboxImg" class="lbMedia" alt="" />
+    <iframe id="lightboxYt" class="lbMedia" title="YouTube" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+  </div>
+
+  <button id="lbNext" class="lbNav lbNext" aria-label="التالي">❯</button>
+
+  <div id="lbCaption" class="lbCaption"></div>
+  <div id="lbThumbs" class="lbThumbs" aria-label="مصغرات"></div>
 </div>
 
 <header>
@@ -162,7 +200,7 @@
   </div>
 
   <!-- Overview -->
-  <section id="tab-overview">
+  <section id="tab-overview" class="tabPane">
     <div class="grid">
       <div class="card">
         <h2>نبذة عن المبادرة</h2>
@@ -193,7 +231,7 @@
   </section>
 
   <!-- Achievements -->
-  <section id="tab-achievements" class="hidden">
+  <section id="tab-achievements" class="tabPane hidden isHidden">
     <div class="card">
       <h2>الإنجازات</h2>
       <div id="achievementsList" class="list"></div>
@@ -202,7 +240,7 @@
   </section>
 
   <!-- Photos -->
-  <section id="tab-photos" class="hidden">
+  <section id="tab-photos" class="tabPane hidden isHidden">
     <div class="card">
       <h2>الصور</h2>
       <div id="photosGrid" class="gallery"></div>
@@ -212,7 +250,7 @@
   </section>
 
   <!-- Partners -->
-  <section id="tab-partners" class="hidden">
+  <section id="tab-partners" class="tabPane hidden isHidden">
     <div class="card">
       <h2>الشركاء</h2>
       <div id="partnersList" class="list"></div>
@@ -294,6 +332,21 @@
   let chProjects=null, chEvents=null, chStudents=null, chTraineesByYear=null;
   const destroy = (ch)=>{ if(ch) ch.destroy(); return null; };
 
+  function animateCountUp(el, to, ms=900){
+    const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(prefersReduce){ el.textContent = Math.round(to).toLocaleString('ar-SA'); return; }
+    const from = 0;
+    const start = performance.now();
+    const tick = (t)=>{
+      const p = Math.min(1, (t-start)/ms);
+      const eased = 1 - Math.pow(1-p, 3); // easeOutCubic
+      const val = Math.round(from + (to-from)*eased);
+      el.textContent = val.toLocaleString('ar-SA');
+      if(p<1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
   function renderCharts(projects, events, trainees){
     const yearsP = projects.map(r=>String(r.Year ?? r.year ?? '').trim()).filter(Boolean);
     const countsP = projects.map(r=>num(r.ProjectsCount ?? r.projects ?? r.Count ?? r.count));
@@ -305,10 +358,14 @@
     const female = trainees.map(r=>num(r.Female ?? r.female ?? r.Girls ?? r.girls));
     const male   = trainees.map(r=>num(r.Male ?? r.male ?? r.Boys ?? r.boys));
 
-    // KPIs
-    document.getElementById('kpiProjects').textContent = countsP.reduce((a,b)=>a+b,0).toLocaleString('ar-SA');
-    document.getElementById('kpiEvents').textContent = countsE.reduce((a,b)=>a+b,0).toLocaleString('ar-SA');
-    document.getElementById('kpiTrainees').textContent = (female.reduce((a,b)=>a+b,0) + male.reduce((a,b)=>a+b,0)).toLocaleString('ar-SA');
+    // KPIs (Count-Up)
+    const totalProjects = countsP.reduce((a,b)=>a+b,0);
+    const totalEvents = countsE.reduce((a,b)=>a+b,0);
+    const totalTrainees = female.reduce((a,b)=>a+b,0) + male.reduce((a,b)=>a+b,0);
+
+    animateCountUp(document.getElementById('kpiProjects'), totalProjects);
+    animateCountUp(document.getElementById('kpiEvents'), totalEvents);
+    animateCountUp(document.getElementById('kpiTrainees'), totalTrainees);
 
     chProjects = destroy(chProjects);
     chProjects = new Chart(document.getElementById('projectsChart'),{
@@ -401,73 +458,216 @@
 
     // أكثر الروابط التي تعمل داخل <img> عادةً
     return [
+      // غالباً هذه تعمل بدون تعديل رابط المشاركة
       `https://drive.google.com/thumbnail?id=${id}&sz=w1200`,
-      `https://lh3.googleusercontent.com/d/${id}=w1200`,
+      `https://lh3.googleusercontent.com/d/${id}=w1600`,
       `https://drive.google.com/uc?export=view&id=${id}`,
+      // بدائل إضافية أحيانًا تنجح مع GitHub Pages
+      `https://drive.usercontent.google.com/uc?id=${id}&export=view`,
       url
     ];
   }
 
+  function isYouTube(url){
+    const u = String(url||'');
+    return /youtube\.com\/watch\?v=|youtu\.be\//i.test(u);
+  }
+
+  function getYouTubeId(url){
+    const u = String(url||'');
+    let m = u.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{6,})/);
+    if(m) return m[1];
+    m = u.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/);
+    if(m) return m[1];
+    m = u.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{6,})/);
+    if(m) return m[1];
+    return null;
+  }
+
+  function ytThumb(id){
+    // mqdefault غالبًا أفضل توازن
+    return `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+  }
+
   function renderPhotos(rows){
     const grid = document.getElementById('photosGrid');
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightboxImg');
-    const btnPrev = document.getElementById('lbPrev');
-    const btnNext = document.getElementById('lbNext');
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightboxImg');
+    const lbYt = document.getElementById('lightboxYt');
+    const lbPrev = document.getElementById('lbPrev');
+    const lbNext = document.getElementById('lbNext');
+    const lbClose = document.getElementById('lbClose');
+    const lbThumbs = document.getElementById('lbThumbs');
+    const lbCaption = document.getElementById('lbCaption');
 
-    let images = [];
+    const items = [];
     let current = 0;
 
-    grid.innerHTML = '';
+    function setMediaVisible(type){
+      if(type==='image'){ lbImg.style.display='block'; lbYt.style.display='none'; lbYt.src=''; }
+      else { lbImg.style.display='none'; lbYt.style.display='block'; }
+    }
+
+    function openLb(){
+      lb.classList.add('open');
+      lb.setAttribute('aria-hidden','false');
+      document.body.style.overflow='hidden';
+    }
+
+    function closeLb(){
+      lb.classList.remove('open');
+      lb.setAttribute('aria-hidden','true');
+      document.body.style.overflow='';
+      lbYt.src='';
+    }
+
+    function buildThumb(el, idx){
+      const d = document.createElement('div');
+      d.className = 'lbThumb' + (idx===current ? ' active':'' );
+      if(el.type==='image'){
+        const im = document.createElement('img');
+        im.src = el.thumb;
+        im.alt = '';
+        d.appendChild(im);
+      } else {
+        const play = document.createElement('div');
+        play.className='play';
+        play.textContent='▶';
+        d.appendChild(play);
+      }
+      d.onclick = ()=> show(idx);
+      return d;
+    }
+
+    function renderThumbs(){
+      lbThumbs.innerHTML='';
+      items.forEach((it,idx)=> lbThumbs.appendChild(buildThumb(it, idx)));
+      // scroll active into view
+      const active = lbThumbs.querySelector('.lbThumb.active');
+      if(active) active.scrollIntoView({ block:'nearest', inline:'center' });
+    }
+
+    function show(i){
+      if(!items.length) return;
+      if(i<0) i = items.length-1;
+      if(i>=items.length) i = 0;
+      current = i;
+      const it = items[current];
+      lbCaption.textContent = it.caption || '';
+
+      if(it.type==='image'){
+        setMediaVisible('image');
+        const cands = it.candidates && it.candidates.length ? it.candidates : [it.src];
+        let ci = 0;
+        lbImg.onerror = ()=>{
+          ci++;
+          if(ci < cands.length){ lbImg.src = cands[ci]; }
+        };
+        lbImg.src = cands[0];
+      } else {
+        setMediaVisible('youtube');
+        lbYt.src = `https://www.youtube.com/embed/${it.ytid}?rel=0`;
+      }
+
+      renderThumbs();
+    }
+
+    function next(){ show(current+1); }
+    function prev(){ show(current-1); }
+
+    // Grid
+    grid.innerHTML='';
     if(!rows.length){ grid.innerHTML = '<div class="muted">لا توجد صور.</div>'; return; }
 
-    rows.slice(0,80).forEach((r,idx)=>{
+    rows.slice(0,120).forEach((r)=>{
       const raw = r.ImageURL ?? r.image ?? r.URL ?? r.url;
       if(!raw) return;
-      const candidates = buildImageCandidates(raw);
+      const cap = r.Caption ?? r.caption ?? '';
 
+      // YouTube item
+      if(isYouTube(raw)){
+        const id = getYouTubeId(raw);
+        if(!id) return;
+        const thumb = ytThumb(id);
+        items.push({ type:'youtube', ytid:id, src: raw, thumb, caption: cap });
+
+        const wrap = document.createElement('div');
+        const img = document.createElement('img');
+        img.className='photo';
+        img.loading='lazy';
+        img.src = thumb;
+        img.alt = cap || 'فيديو';
+        img.onclick = ()=>{ openLb(); show(items.length-1); };
+        wrap.appendChild(img);
+        if(cap){
+          const c = document.createElement('div'); c.className='muted'; c.style.marginTop='6px'; c.textContent=cap; wrap.appendChild(c);
+        }
+        grid.appendChild(wrap);
+        return;
+      }
+
+      // Image item (Drive aware)
+      const candidates = buildImageCandidates(raw);
+      const thumb = candidates[0];
+      const index = items.length;
+      items.push({ type:'image', src:candidates[0], candidates, thumb, caption: cap });
+
+      const wrap = document.createElement('div');
       const img = document.createElement('img');
       img.className='photo';
       img.loading='lazy';
-      img.src = candidates[0];
+      img.alt = cap || 'صورة';
 
+      let idx = 0;
+      img.src = candidates[idx];
       img.onerror = ()=>{
-        for(let i=1;i<candidates.length;i++){
-          img.src = candidates[i];
-        }
+        idx++;
+        if(idx < candidates.length){ img.src = candidates[idx]; items[index].src = candidates[idx]; items[index].thumb = candidates[Math.min(0, idx)] || candidates[idx]; }
       };
 
-      images.push(candidates);
+      img.onclick = ()=>{ openLb(); show(index); };
 
-      img.onclick = ()=>{
-        current = idx;
-        lightboxImg.src = candidates[0];
-        lightbox.style.display='flex';
-      };
-
-      grid.appendChild(img);
+      wrap.appendChild(img);
+      if(cap){
+        const c = document.createElement('div'); c.className='muted'; c.style.marginTop='6px'; c.textContent=cap; wrap.appendChild(c);
+      }
+      grid.appendChild(wrap);
     });
 
-    function showImage(i){
-      if(i<0) i = images.length-1;
-      if(i>=images.length) i = 0;
-      current = i;
-      lightboxImg.src = images[current][0];
-    }
+    // Controls
+    lbPrev.onclick = (e)=>{ e.stopPropagation(); prev(); };
+    lbNext.onclick = (e)=>{ e.stopPropagation(); next(); };
+    lbClose.onclick = (e)=>{ e.stopPropagation(); closeLb(); };
 
-    btnPrev.onclick = ()=> showImage(current-1);
-    btnNext.onclick = ()=> showImage(current+1);
+    lb.addEventListener('click', (e)=>{ if(e.target===lb) closeLb(); });
 
+    // Keyboard
     document.addEventListener('keydown', (e)=>{
-      if(lightbox.style.display!=='flex') return;
-      if(e.key==='ArrowRight') showImage(current+1);
-      if(e.key==='ArrowLeft') showImage(current-1);
-      if(e.key==='Escape') lightbox.style.display='none';
+      if(!lb.classList.contains('open')) return;
+      if(e.key==='ArrowRight') next();
+      if(e.key==='ArrowLeft') prev();
+      if(e.key==='Escape') closeLb();
     });
 
-    lightbox.onclick = (e)=>{
-      if(e.target===lightbox){ lightbox.style.display='none'; }
-    };
+    // Swipe
+    let sx=0, sy=0, tracking=false;
+    lb.addEventListener('touchstart', (e)=>{
+      if(!lb.classList.contains('open')) return;
+      tracking=true;
+      sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+    }, {passive:true});
+    lb.addEventListener('touchend', (e)=>{
+      if(!tracking || !lb.classList.contains('open')) return;
+      tracking=false;
+      const ex=(e.changedTouches[0].clientX); const ey=(e.changedTouches[0].clientY);
+      const dx=ex-sx, dy=ey-sy;
+      if(Math.abs(dx) > 50 && Math.abs(dy) < 40){
+        if(dx<0) next(); else prev();
+      }
+    }, {passive:true});
+
+    // Initial thumbs build (when opening)
+    // (we build on show)
   }
 
   /* تحميل البيانات */
@@ -500,7 +700,7 @@
       if(data.partners) renderPartners(data.partners);
 
       if(failed.length){
-        setStatus('تم تحميل بعض البيانات ✅ (يوجد ملفات لم تُحمّل)', true);
+        setStatus('تم تحميل بعض البيانات ✅', true);
         console.warn('CSV load issues:', failed);
       } else {
         setStatus('تم تحميل البيانات بنجاح ✅', true);
@@ -509,22 +709,37 @@
       console.error(e);
       setStatus('حدث خطأ أثناء عرض البيانات (تحققي من أسماء الأعمدة في الشيت).', false);
     }
-
-    // إذا في ملفات فشلت: أعرض تلميح واضح في الـ Console
-    if(failed.length){
-      console.warn('Fix hints: تأكدي أن Google Sheet منشور Public كـ CSV، وشغلي الصفحة عبر GitHub Pages وليس file://');
-    }
   })();
 
-  /* التبويبات */
+  /* التبويبات (انتقال متحرك) */
+  const panes = Array.from(document.querySelectorAll('section[id^="tab-"]'));
+
+  function showPane(id){
+    panes.forEach(p=>{
+      if(p.id === id){
+        p.classList.remove('hidden');
+        p.classList.remove('isHidden');
+        // force reflow for transition
+        void p.offsetWidth;
+        p.style.height='';
+      } else {
+        p.classList.add('hidden');
+        // بعد انتهاء الحركة نخفيه نهائيًا
+        setTimeout(()=> p.classList.add('isHidden'), 360);
+      }
+    });
+  }
+
   document.querySelectorAll('.tab').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
-      document.querySelectorAll('section[id^="tab-"]').forEach(s=>s.classList.add('hidden'));
-      const section = document.getElementById('tab-'+btn.dataset.tab);
-      if(section) section.classList.remove('hidden');
+      showPane('tab-'+btn.dataset.tab);
     });
+  });
+
+  // ابدأ بإخفاء البقية بشكل صحيح
+  showPane('tab-overview');
   });
 
   /********************
@@ -532,16 +747,27 @@
    ********************/
   (function runTests(){
     try{
-      const sample = 'Year,ProjectsCount\n2018,2\n2019,4\n';
+      const sample = 'Year,ProjectsCount
+2018,2
+2019,4
+';
       const rows = parseCsv(sample);
       console.assert(rows.length===2, 'CSV rows length');
       console.assert(rows[0].Year==='2018', 'CSV header Year');
       console.assert(rows[1].ProjectsCount==='4', 'CSV value');
 
-      const sample2 = 'Name,Note\n"A, B","hello \"world\""\n';
+      const sample2 = 'Name,Note
+"A, B","hello ""world"""
+';
       const rows2 = parseCsv(sample2);
       console.assert(rows2[0].Name==='A, B', 'Quoted comma');
       console.assert(rows2[0].Note==='hello "world"', 'Escaped quotes');
+
+      // YouTube parsing
+      console.assert(getYouTubeId('https://youtu.be/abcDEF12345')==='abcDEF12345', 'YouTube short link');
+      console.assert(getYouTubeId('https://www.youtube.com/watch?v=abcDEF12345')==='abcDEF12345', 'YouTube watch link');
+      console.assert(isYouTube('https://www.youtube.com/watch?v=abcDEF12345')===true, 'isYouTube true');
+      console.assert(isYouTube('https://example.com/x.png')===false, 'isYouTube false');
     } catch (e) {
       console.error('Tests failed', e);
     }
