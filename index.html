@@ -250,24 +250,56 @@
   }
 
   function parseCsv(text){
-    const lines = text.replace(/
-/g,'').split('
-').filter(l=>l.trim().length);
+    const lines = String(text ?? '')
+      .replace(/
+/g,'')
+      .split('
+')
+      .filter(l => l.trim().length);
+
     if(!lines.length) return [];
-    const headers = splitCsvLine(lines[0]).map(h=>h.replace(/^﻿/,'').trim());
+
+    const headers = splitCsvLine(lines[0])
+      .map(h => h.replace(/^﻿/, '').trim());
+
     return lines.slice(1).map(l=>{
       const cells = splitCsvLine(l);
-      const obj={};
-      headers.forEach((h,idx)=> obj[h]= (cells[idx] ?? "").trim());
+      const obj = {};
+      headers.forEach((h,idx)=> obj[h] = (cells[idx] ?? '').trim());
       return obj;
     });
   }
 
   async function loadCSV(url){
-    const res = await fetch(url, { cache: 'no-store' });
-    if(!res.ok) throw new Error(`CSV HTTP ${res.status}`);
+    if(location.protocol === 'file:'){
+      throw new Error('فتح الصفحة عبر file:// يمنع تحميل CSV. افتحيها من GitHub Pages.');
+    }
+
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 15000);
+    let res;
+    try{
+      res = await fetch(url, { cache:'no-store', signal: ctrl.signal });
+    } catch(e){
+      clearTimeout(t);
+      throw new Error('Fetch failed (شبكة/حجب/CORS).');
+    }
+    clearTimeout(t);
+
+    if(!res.ok){
+      throw new Error(`CSV HTTP ${res.status}`);
+    }
+
     const text = await res.text();
-    return parseCsv(text);
+    const rows = parseCsv(text);
+
+    // إذا رجع HTML بدل CSV
+    if(!rows.length){
+      const head = String(text).slice(0,120).replace(/\s+/g,' ');
+      throw new Error('الرابط لا يرجّع CSV (قد يكون HTML/صلاحيات). بداية المحتوى: ' + head);
+    }
+
+    return rows;
   }
 
   function setStatus(msg, ok){
@@ -593,8 +625,8 @@
 
     async function run(){
       retryBtn.style.display='none';
-      debug.style.display='none';
-      debug.innerHTML='';
+      debug.style.display='block';
+      debug.innerHTML = `<b>تشخيص سريع:</b><br>• الرابط: ${escapeHtml(location.href)}<br>• البروتوكول: ${escapeHtml(location.protocol)}<br>• المتصفح: ${escapeHtml(navigator.userAgent)}<br>• الوقت: ${new Date().toLocaleString('ar-SA')}<br>`;
       setStatus('جاري تحميل البيانات…', true);
 
       const results = await Promise.allSettled([
@@ -645,10 +677,10 @@
   // Tests (keep + add)
   (function runTests(){
     try{
-      const sample = 'Year,ProjectsCount
+      const sample = "Year,ProjectsCount
 2018,2
 2019,4
-';
+";
       const rows = parseCsv(sample);
       console.assert(rows.length===2, 'CSV rows length');
       console.assert(rows[0].Year==='2018', 'CSV header Year');
