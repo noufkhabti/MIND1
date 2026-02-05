@@ -6,164 +6,123 @@
   <title>داش بورد | مبادرة العقل يتنفس</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* ألوان فرائحية بأسلوب Canva */
     :root{
       --bg:#fff7fb;
       --card:#ffffff;
       --text:#1f2937;
       --muted:#6b7280;
-
       --pink:#ec4899;
       --purple:#a855f7;
       --mint:#34d399;
       --sky:#38bdf8;
-
       --radius:18px;
       --shadow:0 10px 25px rgba(0,0,0,.08);
       --ring:rgba(236,72,153,.35);
     }
 
     *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial;
-      background:var(--bg);
-      color:var(--text);
-    }
+    body{ margin:0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:var(--bg); color:var(--text); }
 
     header{
       background:linear-gradient(135deg,var(--pink),var(--purple),var(--sky));
-      color:#fff;
-      padding:28px 16px;
-      text-align:center;
-      animation: fadeDown .9s ease both;
+      color:#fff; padding:24px 16px; text-align:center;
+      animation: fadeDown .7s ease both;
     }
-
     header h1{ margin:0 0 6px; font-size:30px; }
     header p{ margin:0; opacity:.95; }
 
-    .wrap{ max-width:1200px; margin:auto; padding:22px 16px 40px; }
+    .wrap{ max-width:1200px; margin:auto; padding:18px 14px 34px; }
 
-    .topbar{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:space-between;
-      margin-bottom:14px;
-      animation: fadeUp .9s ease both .2s;
-    }
+    .topbar{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-bottom:14px; animation: fadeUp .7s ease both .1s; }
+    .pill{ background:var(--card); border-radius:999px; padding:10px 14px; box-shadow:var(--shadow); font-size:14px; transition:transform .25s ease, box-shadow .25s ease; }
+    .pill:hover{ transform:translateY(-3px); box-shadow:0 16px 30px rgba(0,0,0,.12); }
 
-    .pill{
-      background:var(--card);
-      border-radius:999px;
-      padding:10px 14px;
-      box-shadow:var(--shadow);
-      font-size:14px;
-      transition: transform .3s ease, box-shadow .3s ease;
-    }
-    .pill:hover{ transform:translateY(-4px); box-shadow:0 16px 30px rgba(0,0,0,.12); }
+    .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 16px; justify-content:center; animation: fadeUp .7s ease both .15s; }
+    .tab{ border:0; cursor:pointer; background:var(--card); padding:12px 16px; border-radius:999px; box-shadow:var(--shadow); font-weight:800; color:var(--text); transition:transform .2s ease, box-shadow .2s ease; }
+    .tab:hover{ transform:translateY(-2px); }
+    .tab.active{ background:linear-gradient(135deg,#fff0f7,#f5f3ff,#effaff); box-shadow:0 0 0 4px var(--ring), var(--shadow); color:var(--pink); }
 
-    .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 18px; animation: fadeUp .9s ease both .3s; }
-    .tab{
-      border:0; cursor:pointer;
-      background:var(--card);
-      padding:12px 16px;
-      border-radius:999px;
-      box-shadow:var(--shadow);
-      font-weight:700;
-      color:var(--text);
-      transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
-    }
-    .tab:hover{ transform:translateY(-3px); }
-    .tab.active{
-      background:linear-gradient(135deg,#fff0f7,#f5f3ff,#effaff);
-      box-shadow:0 0 0 4px var(--ring), var(--shadow);
-      color:var(--pink);
-    }
+    .grid{ display:grid; grid-template-columns: 1.25fr .75fr; gap:14px; }
 
-    .grid{ display:grid; grid-template-columns: 1.3fr .7fr; gap:18px; }
-
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      padding:18px;
-      box-shadow:var(--shadow);
-      animation: fadeUp .9s ease both;
-      transition: transform .35s ease, box-shadow .35s ease;
-    }
-    .card:hover{ transform:translateY(-6px); box-shadow:0 18px 40px rgba(0,0,0,.12); }
+    .card{ background:var(--card); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); animation: fadeUp .7s ease both; transition: transform .3s ease, box-shadow .3s ease; }
+    .card:hover{ transform:translateY(-4px); box-shadow:0 18px 40px rgba(0,0,0,.12); }
 
     .card h2, .sectionTitle{ color:var(--pink); margin:0 0 10px; }
     .muted{ color:var(--muted); }
 
-    .kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-
-    .kpi{
-      background:linear-gradient(180deg,#ffffff,#fff7fb);
-      border-radius:16px;
-      padding:14px;
-      box-shadow:var(--shadow);
-      animation: scaleIn .6s ease both;
-    }
+    .kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .kpi{ background:linear-gradient(180deg,#ffffff,#fff7fb); border-radius:16px; padding:12px; box-shadow:var(--shadow); }
     .kpi .label{ font-size:13px; color:var(--muted); }
     .kpi .value{ font-size:28px; font-weight:900; color:var(--purple); }
 
-    .charts{ display:grid; gap:16px; }
-    canvas{ background:#fff; border-radius:16px; padding:14px; box-shadow:var(--shadow); max-height:420px; }
+    .charts{ display:grid; gap:14px; margin-top:14px; }
+    canvas{ background:#fff; border-radius:16px; padding:12px; box-shadow:var(--shadow); width:100%; max-height:420px; }
 
-    .hidden{ display:none; }
+    .status{ margin-top:10px; font-size:14px; }
+    .status.ok{ color:#059669; }
+    .status.err{ color:#dc2626; }
 
-    footer{
-      text-align:center;
-      padding:18px;
-      color:var(--muted);
-      font-size:14px;
-      animation: fadeUp .9s ease both .5s;
-    }
+    /* تبويبات بحركة */
+    .tabPane{ opacity:1; transform:none; transition: opacity .25s ease, transform .25s ease; }
+    .tabPane.fadeOut{ opacity:0; transform:translateY(10px); pointer-events:none; }
+    .isHidden{ display:none !important; }
+
+    /* Lists & gallery */
+    .list{ display:grid; gap:10px; }
+    .item{ border:1px solid #eef2f7; border-radius:14px; padding:12px; background:#fff; }
+    .item b{ color:var(--purple); }
 
     .gallery{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-    .photo{ width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:16px; box-shadow:var(--shadow); cursor:pointer; transition: transform .4s ease; }
-    .photo:hover{ transform:scale(1.05); }
+    .photo{ width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:16px; box-shadow:var(--shadow); background:#f3f4f6; cursor:pointer; transition: transform .25s ease; }
+    .photo:hover{ transform:scale(1.03); }
 
-    @keyframes fadeUp{ from{ opacity:0; transform:translateY(30px);} to{opacity:1; transform:none;} }
-    @keyframes fadeDown{ from{ opacity:0; transform:translateY(-30px);} to{opacity:1; transform:none;} }
-    @keyframes scaleIn{ from{ opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
-
-    /* Tabs transition */
-    .tabPane{ opacity:1; transform:none; transition: opacity .35s ease, transform .35s ease; }
-    .tabPane.hidden{ display:block; opacity:0; transform:translateY(10px); pointer-events:none; height:0; overflow:hidden; margin:0; padding:0; }
-    .tabPane.isHidden{ display:none !important; }
+    footer{ text-align:center; padding:16px; color:var(--muted); font-size:14px; }
 
     /* Lightbox */
-    .lb{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.75); z-index:9999; padding:18px; }
-    .lb.open{ display:flex; flex-direction:column; }
-    .lbStage{ width:min(1100px, 98vw); height:min(70vh, 560px); display:flex; align-items:center; justify-content:center; }
-    .lbMedia{ width:100%; height:100%; border:0; border-radius:18px; box-shadow:0 20px 50px rgba(0,0,0,.35); background:#111; object-fit:contain; }
-    .lbNav{ position:absolute; top:50%; transform:translateY(-50%); font-size:46px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); color:#fff; cursor:pointer; border-radius:999px; width:54px; height:54px; display:grid; place-items:center; }
-    .lbPrev{ left:16px; }
-    .lbNext{ right:16px; }
+    .lb{ position:fixed; inset:0; display:none; background:rgba(0,0,0,.75); z-index:9999; padding:14px; }
+    .lb.open{ display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .lbClose{ position:absolute; top:12px; right:12px; width:44px; height:44px; border-radius:999px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:18px; }
-    .lbCaption{ color:#fff; margin-top:10px; text-align:center; opacity:.9; }
-    .lbThumbs{ width:min(1100px, 98vw); display:flex; gap:10px; overflow:auto; padding:12px 2px 4px; margin-top:10px; }
-    .lbThumbs::-webkit-scrollbar{ height:10px; }
+    .lbNav{ position:absolute; top:50%; transform:translateY(-50%); width:54px; height:54px; border-radius:999px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:46px; display:grid; place-items:center; }
+    .lbPrev{ left:12px; }
+    .lbNext{ right:12px; }
+    .lbStage{ width:min(1100px, 98vw); height:min(70vh, 560px); display:flex; align-items:center; justify-content:center; }
+    .lbMedia{ width:100%; height:100%; border:0; border-radius:18px; box-shadow:0 20px 50px rgba(0,0,0,.35); background:#111; object-fit:contain; display:none; }
+    .lbCaption{ color:#fff; margin-top:10px; text-align:center; opacity:.92; }
+    .lbThumbs{ width:min(1100px, 98vw); display:flex; gap:10px; overflow:auto; padding:10px 2px 4px; margin-top:10px; }
     .lbThumb{ flex:0 0 auto; width:86px; height:56px; border-radius:12px; border:2px solid rgba(255,255,255,.22); overflow:hidden; background:rgba(255,255,255,.08); cursor:pointer; opacity:.85; transition: transform .2s ease, opacity .2s ease, border-color .2s ease; }
     .lbThumb:hover{ transform:translateY(-2px); opacity:1; }
     .lbThumb.active{ border-color: rgba(236,72,153,.95); opacity:1; }
     .lbThumb img{ width:100%; height:100%; object-fit:cover; display:block; }
     .lbThumb .play{ width:100%; height:100%; display:grid; place-items:center; color:#fff; font-size:18px; background:linear-gradient(135deg, rgba(236,72,153,.35), rgba(56,189,248,.25)); }
 
+    /* Responsive */
+    @media (max-width: 1024px){ .grid{ grid-template-columns:1fr; } }
     @media (max-width: 768px){
+      header h1{ font-size:24px; }
+      .tab{ padding:10px 12px; font-size:14px; }
+      .kpis{ grid-template-columns:1fr; }
+      canvas{ max-height:320px; }
+      .gallery{ grid-template-columns:repeat(2,1fr); }
       .lbStage{ height:min(56vh, 420px); }
       .lbNav{ width:48px; height:48px; font-size:40px; }
       .lbThumb{ width:74px; height:50px; }
     }
-
-    @media (prefers-reduced-motion: reduce){
-      *{ animation:none!important; transition:none!important; }
+    @media (max-width: 480px){
+      .wrap{ padding:14px 12px 28px; }
+      .pill{ font-size:12px; padding:8px 10px; }
+      .card{ padding:14px; }
+      canvas{ max-height:260px; }
+      .gallery{ grid-template-columns:1fr; }
     }
+
+    @keyframes fadeUp{ from{ opacity:0; transform:translateY(18px);} to{opacity:1; transform:none;} }
+    @keyframes fadeDown{ from{ opacity:0; transform:translateY(-18px);} to{opacity:1; transform:none;} }
+
+    @media (prefers-reduced-motion: reduce){ *{ animation:none!important; transition:none!important; } }
   </style>
 </head>
 <body>
+
 <!-- Lightbox / Gallery -->
 <div id="lightbox" class="lb" aria-hidden="true">
   <button id="lbClose" class="lbClose" aria-label="إغلاق">✕</button>
@@ -171,11 +130,10 @@
 
   <div class="lbStage">
     <img id="lightboxImg" class="lbMedia" alt="" />
-    <iframe id="lightboxYt" class="lbMedia" title="YouTube" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    <iframe id="lightboxYt" class="lbMedia" title="YouTube" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
   </div>
 
   <button id="lbNext" class="lbNav lbNext" aria-label="التالي">❯</button>
-
   <div id="lbCaption" class="lbCaption"></div>
   <div id="lbThumbs" class="lbThumbs" aria-label="مصغرات"></div>
 </div>
@@ -186,9 +144,7 @@
 </header>
 
 <div class="wrap">
-
   <div class="topbar">
-    
     <div class="pill">📅 سنة التأسيس: <b>2018</b></div>
   </div>
 
@@ -215,9 +171,9 @@
       <div class="card">
         <h2>ملخص إحصائي</h2>
         <div class="kpis">
-          <div class="kpi"><div class="label">المشاريع</div><div id="kpiProjects" class="value">—</div></div>
-          <div class="kpi"><div class="label">الفعاليات</div><div id="kpiEvents" class="value">—</div></div>
-          <div class="kpi"><div class="label">المتدربون</div><div id="kpiTrainees" class="value">—</div></div>
+          <div class="kpi"><div class="label">المشاريع</div><div id="kpiProjects" class="value">0</div></div>
+          <div class="kpi"><div class="label">الفعاليات</div><div id="kpiEvents" class="value">0</div></div>
+          <div class="kpi"><div class="label">المتدربون</div><div id="kpiTrainees" class="value">0</div></div>
         </div>
       </div>
     </div>
@@ -231,39 +187,33 @@
   </section>
 
   <!-- Achievements -->
-  <section id="tab-achievements" class="tabPane hidden isHidden">
+  <section id="tab-achievements" class="tabPane isHidden">
     <div class="card">
       <h2>الإنجازات</h2>
       <div id="achievementsList" class="list"></div>
-      
     </div>
   </section>
 
   <!-- Photos -->
-  <section id="tab-photos" class="tabPane hidden isHidden">
+  <section id="tab-photos" class="tabPane isHidden">
     <div class="card">
       <h2>الصور</h2>
       <div id="photosGrid" class="gallery"></div>
-      
-      
     </div>
   </section>
 
   <!-- Partners -->
-  <section id="tab-partners" class="tabPane hidden isHidden">
+  <section id="tab-partners" class="tabPane isHidden">
     <div class="card">
       <h2>الشركاء</h2>
       <div id="partnersList" class="list"></div>
-      
     </div>
   </section>
-
 </div>
 
 <footer>© نوف خبتي — مبادرة العقل يتنفس</footer>
 
 <script>
-  /* روابط Google Sheets */
   const SHEETS = {
     projects: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTdJoeiY6gtt0NaEWYFZxmhMYxT-0EPug4za-8Wl1xXI8o6PYlLn56g-Dv15i0dqsENN9Zai1ROlMA6/pub?output=csv",
     events: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQc-r6wYcwCrEnYNn1A7iFr9Lj9wi78N2-w1enXOA3UgrRSccpLkL-wi4wuO8c45ItTo2Pzz0AP7p6l/pub?output=csv",
@@ -273,7 +223,6 @@
     partners: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSi20NWBWlJKeq8P9g_YGTVI8bilx6GNwzrvW3co1_R4bdN6n3B-q7akjVs0AIcFsiSi8C1eFGGxhG/pub?output=csv",
   };
 
-  /* أدوات مساعدة */
   const num = (v) => {
     const n = Number(String(v ?? "").replace(/[^0-9.\-]/g, ""));
     return Number.isFinite(n) ? n : 0;
@@ -283,7 +232,6 @@
     return String(s ?? "").replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   }
 
-  // CSV parser يدعم الاقتباسات
   function splitCsvLine(line){
     const out=[]; let cur=""; let q=false;
     for(let i=0;i<line.length;i++){
@@ -295,13 +243,15 @@
       else cur+=c;
     }
     out.push(cur);
-    return out.map(s=>s.trim());
+    return out;
   }
 
   function parseCsv(text){
-    const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+    const lines = text.replace(/
+/g,'').split('
+').filter(l=>l.trim().length);
     if(!lines.length) return [];
-    const headers = splitCsvLine(lines[0]).map(h=>h.replace(/^\uFEFF/,''));
+    const headers = splitCsvLine(lines[0]).map(h=>h.replace(/^﻿/,'').trim());
     return lines.slice(1).map(l=>{
       const cells = splitCsvLine(l);
       const obj={};
@@ -311,13 +261,8 @@
   }
 
   async function loadCSV(url){
-    // ملاحظة: إذا فتحتي الملف مباشرة عبر file:// قد يفشل fetch.
-    // الأفضل تشغيله عبر GitHub Pages أو أي سيرفر محلي.
     const res = await fetch(url, { cache: 'no-store' });
-    if(!res.ok) {
-      const hint = `HTTP ${res.status}`;
-      throw new Error(`CSV fetch failed (${hint})`);
-    }
+    if(!res.ok) throw new Error(`CSV HTTP ${res.status}`);
     const text = await res.text();
     return parseCsv(text);
   }
@@ -328,10 +273,6 @@
     el.className = 'status ' + (ok ? 'ok' : 'err');
   }
 
-  /* Charts */
-  let chProjects=null, chEvents=null, chStudents=null, chTraineesByYear=null;
-  const destroy = (ch)=>{ if(ch) ch.destroy(); return null; };
-
   function animateCountUp(el, to, ms=900){
     const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(prefersReduce){ el.textContent = Math.round(to).toLocaleString('ar-SA'); return; }
@@ -339,13 +280,17 @@
     const start = performance.now();
     const tick = (t)=>{
       const p = Math.min(1, (t-start)/ms);
-      const eased = 1 - Math.pow(1-p, 3); // easeOutCubic
+      const eased = 1 - Math.pow(1-p, 3);
       const val = Math.round(from + (to-from)*eased);
       el.textContent = val.toLocaleString('ar-SA');
       if(p<1) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
   }
+
+  // Charts
+  let chProjects=null, chEvents=null, chStudents=null, chTraineesByYear=null;
+  const destroy = (ch)=>{ if(ch) ch.destroy(); return null; };
 
   function renderCharts(projects, events, trainees){
     const yearsP = projects.map(r=>String(r.Year ?? r.year ?? '').trim()).filter(Boolean);
@@ -358,7 +303,6 @@
     const female = trainees.map(r=>num(r.Female ?? r.female ?? r.Girls ?? r.girls));
     const male   = trainees.map(r=>num(r.Male ?? r.male ?? r.Boys ?? r.boys));
 
-    // KPIs (Count-Up)
     const totalProjects = countsP.reduce((a,b)=>a+b,0);
     const totalEvents = countsE.reduce((a,b)=>a+b,0);
     const totalTrainees = female.reduce((a,b)=>a+b,0) + male.reduce((a,b)=>a+b,0);
@@ -434,18 +378,15 @@
     });
   }
 
+  // Drive helpers
   function extractDriveId(u){
     const url = String(u||'').trim();
-    // file/d/<ID>/view
     let m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
     if(m) return m[1];
-    // open?id=<ID>
     m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
     if(m) return m[1];
-    // uc?export=view&id=<ID>
     m = url.match(/uc\?[^#]*id=([a-zA-Z0-9_-]+)/);
     if(m) return m[1];
-    // googleusercontent.com/d/<ID>
     m = url.match(/googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/);
     if(m) return m[1];
     return null;
@@ -455,24 +396,17 @@
     const url = String(rawUrl||'').trim();
     const id = extractDriveId(url);
     if(!id) return [url];
-
-    // أكثر الروابط التي تعمل داخل <img> عادةً
     return [
-      // غالباً هذه تعمل بدون تعديل رابط المشاركة
       `https://drive.google.com/thumbnail?id=${id}&sz=w1200`,
       `https://lh3.googleusercontent.com/d/${id}=w1600`,
       `https://drive.google.com/uc?export=view&id=${id}`,
-      // بدائل إضافية أحيانًا تنجح مع GitHub Pages
       `https://drive.usercontent.google.com/uc?id=${id}&export=view`,
-      url
+      url,
     ];
   }
 
-  function isYouTube(url){
-    const u = String(url||'');
-    return /youtube\.com\/watch\?v=|youtu\.be\//i.test(u);
-  }
-
+  // YouTube helpers
+  function isYouTube(url){ return /youtube\.com\/watch\?v=|youtu\.be\//i.test(String(url||'')); }
   function getYouTubeId(url){
     const u = String(url||'');
     let m = u.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{6,})/);
@@ -483,11 +417,7 @@
     if(m) return m[1];
     return null;
   }
-
-  function ytThumb(id){
-    // mqdefault غالبًا أفضل توازن
-    return `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
-  }
+  function ytThumb(id){ return `https://i.ytimg.com/vi/${id}/mqdefault.jpg`; }
 
   function renderPhotos(rows){
     const grid = document.getElementById('photosGrid');
@@ -507,33 +437,16 @@
       if(type==='image'){ lbImg.style.display='block'; lbYt.style.display='none'; lbYt.src=''; }
       else { lbImg.style.display='none'; lbYt.style.display='block'; }
     }
+    function openLb(){ lb.classList.add('open'); lb.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+    function closeLb(){ lb.classList.remove('open'); lb.setAttribute('aria-hidden','true'); document.body.style.overflow=''; lbYt.src=''; }
 
-    function openLb(){
-      lb.classList.add('open');
-      lb.setAttribute('aria-hidden','false');
-      document.body.style.overflow='hidden';
-    }
-
-    function closeLb(){
-      lb.classList.remove('open');
-      lb.setAttribute('aria-hidden','true');
-      document.body.style.overflow='';
-      lbYt.src='';
-    }
-
-    function buildThumb(el, idx){
+    function buildThumb(it, idx){
       const d = document.createElement('div');
       d.className = 'lbThumb' + (idx===current ? ' active':'' );
-      if(el.type==='image'){
-        const im = document.createElement('img');
-        im.src = el.thumb;
-        im.alt = '';
-        d.appendChild(im);
+      if(it.type==='image'){
+        const im = document.createElement('img'); im.src = it.thumb; im.alt=''; d.appendChild(im);
       } else {
-        const play = document.createElement('div');
-        play.className='play';
-        play.textContent='▶';
-        d.appendChild(play);
+        const play = document.createElement('div'); play.className='play'; play.textContent='▶'; d.appendChild(play);
       }
       d.onclick = ()=> show(idx);
       return d;
@@ -542,7 +455,6 @@
     function renderThumbs(){
       lbThumbs.innerHTML='';
       items.forEach((it,idx)=> lbThumbs.appendChild(buildThumb(it, idx)));
-      // scroll active into view
       const active = lbThumbs.querySelector('.lbThumb.active');
       if(active) active.scrollIntoView({ block:'nearest', inline:'center' });
     }
@@ -559,23 +471,19 @@
         setMediaVisible('image');
         const cands = it.candidates && it.candidates.length ? it.candidates : [it.src];
         let ci = 0;
-        lbImg.onerror = ()=>{
-          ci++;
-          if(ci < cands.length){ lbImg.src = cands[ci]; }
-        };
+        lbImg.onerror = ()=>{ ci++; if(ci < cands.length) lbImg.src = cands[ci]; };
         lbImg.src = cands[0];
       } else {
         setMediaVisible('youtube');
+        // بدون تشغيل تلقائي
         lbYt.src = `https://www.youtube.com/embed/${it.ytid}?rel=0`;
       }
-
       renderThumbs();
     }
 
-    function next(){ show(current+1); }
-    function prev(){ show(current-1); }
+    const next = ()=> show(current+1);
+    const prev = ()=> show(current-1);
 
-    // Grid
     grid.innerHTML='';
     if(!rows.length){ grid.innerHTML = '<div class="muted">لا توجد صور.</div>'; return; }
 
@@ -584,64 +492,46 @@
       if(!raw) return;
       const cap = r.Caption ?? r.caption ?? '';
 
-      // YouTube item
       if(isYouTube(raw)){
         const id = getYouTubeId(raw);
         if(!id) return;
         const thumb = ytThumb(id);
+        const index = items.length;
         items.push({ type:'youtube', ytid:id, src: raw, thumb, caption: cap });
 
         const wrap = document.createElement('div');
         const img = document.createElement('img');
-        img.className='photo';
-        img.loading='lazy';
-        img.src = thumb;
-        img.alt = cap || 'فيديو';
-        img.onclick = ()=>{ openLb(); show(items.length-1); };
+        img.className='photo'; img.loading='lazy'; img.src = thumb; img.alt = cap || 'فيديو';
+        img.onclick = ()=>{ openLb(); show(index); };
         wrap.appendChild(img);
-        if(cap){
-          const c = document.createElement('div'); c.className='muted'; c.style.marginTop='6px'; c.textContent=cap; wrap.appendChild(c);
-        }
+        if(cap){ const c = document.createElement('div'); c.className='muted'; c.style.marginTop='6px'; c.textContent=cap; wrap.appendChild(c); }
         grid.appendChild(wrap);
         return;
       }
 
-      // Image item (Drive aware)
       const candidates = buildImageCandidates(raw);
-      const thumb = candidates[0];
       const index = items.length;
-      items.push({ type:'image', src:candidates[0], candidates, thumb, caption: cap });
+      items.push({ type:'image', src:candidates[0], candidates, thumb:candidates[0], caption: cap });
 
       const wrap = document.createElement('div');
       const img = document.createElement('img');
-      img.className='photo';
-      img.loading='lazy';
-      img.alt = cap || 'صورة';
+      img.className='photo'; img.loading='lazy'; img.alt = cap || 'صورة';
 
       let idx = 0;
       img.src = candidates[idx];
-      img.onerror = ()=>{
-        idx++;
-        if(idx < candidates.length){ img.src = candidates[idx]; items[index].src = candidates[idx]; items[index].thumb = candidates[Math.min(0, idx)] || candidates[idx]; }
-      };
-
+      img.onerror = ()=>{ idx++; if(idx < candidates.length){ img.src = candidates[idx]; items[index].src = candidates[idx]; items[index].thumb = candidates[0]; } };
       img.onclick = ()=>{ openLb(); show(index); };
 
       wrap.appendChild(img);
-      if(cap){
-        const c = document.createElement('div'); c.className='muted'; c.style.marginTop='6px'; c.textContent=cap; wrap.appendChild(c);
-      }
+      if(cap){ const c = document.createElement('div'); c.className='muted'; c.style.marginTop='6px'; c.textContent=cap; wrap.appendChild(c); }
       grid.appendChild(wrap);
     });
 
-    // Controls
     lbPrev.onclick = (e)=>{ e.stopPropagation(); prev(); };
     lbNext.onclick = (e)=>{ e.stopPropagation(); next(); };
     lbClose.onclick = (e)=>{ e.stopPropagation(); closeLb(); };
-
     lb.addEventListener('click', (e)=>{ if(e.target===lb) closeLb(); });
 
-    // Keyboard
     document.addEventListener('keydown', (e)=>{
       if(!lb.classList.contains('open')) return;
       if(e.key==='ArrowRight') next();
@@ -651,28 +541,51 @@
 
     // Swipe
     let sx=0, sy=0, tracking=false;
-    lb.addEventListener('touchstart', (e)=>{
-      if(!lb.classList.contains('open')) return;
-      tracking=true;
-      sx=e.touches[0].clientX; sy=e.touches[0].clientY;
-    }, {passive:true});
+    lb.addEventListener('touchstart', (e)=>{ if(!lb.classList.contains('open')) return; tracking=true; sx=e.touches[0].clientX; sy=e.touches[0].clientY; }, {passive:true});
     lb.addEventListener('touchend', (e)=>{
       if(!tracking || !lb.classList.contains('open')) return;
       tracking=false;
-      const ex=(e.changedTouches[0].clientX); const ey=(e.changedTouches[0].clientY);
+      const ex=e.changedTouches[0].clientX, ey=e.changedTouches[0].clientY;
       const dx=ex-sx, dy=ey-sy;
-      if(Math.abs(dx) > 50 && Math.abs(dy) < 40){
-        if(dx<0) next(); else prev();
-      }
+      if(Math.abs(dx) > 50 && Math.abs(dy) < 40){ dx<0 ? next() : prev(); }
     }, {passive:true});
-
-    // Initial thumbs build (when opening)
-    // (we build on show)
   }
 
-  /* تحميل البيانات */
+  // Tabs (animated)
+  const panes = Array.from(document.querySelectorAll('section[id^="tab-"]'));
+  function showPane(id){
+    panes.forEach(p=>{
+      if(p.id === id){
+        p.classList.remove('isHidden');
+        p.classList.remove('fadeOut');
+        // reflow to allow transition
+        void p.offsetWidth;
+        p.style.pointerEvents='auto';
+      } else {
+        p.classList.add('fadeOut');
+        setTimeout(()=> p.classList.add('isHidden'), 260);
+      }
+    });
+
+    // مهم: Chart.js يحتاج resize عند العودة لتبويب الداش
+    if(id === 'tab-overview'){
+      setTimeout(()=>{
+        try{ chProjects?.resize(); chEvents?.resize(); chStudents?.resize(); chTraineesByYear?.resize(); }catch(_e){}
+      }, 280);
+    }
+  }
+
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      showPane('tab-'+btn.dataset.tab);
+    });
+  });
+  showPane('tab-overview');
+
+  // Load data (robust)
   (async()=>{
-    // نستخدم allSettled حتى لو ملف واحد فشل ما يوقف الباقي
     const results = await Promise.allSettled([
       loadCSV(SHEETS.projects),
       loadCSV(SHEETS.events),
@@ -685,66 +598,30 @@
     const names = ['projects','events','trainees','achievements','photos','partners'];
     const data = {};
     const failed = [];
-
     results.forEach((r,i)=>{
       if(r.status==='fulfilled') data[names[i]] = r.value;
       else failed.push(`${names[i]}: ${r.reason?.message || r.reason}`);
     });
 
     try{
-      if(data.projects && data.events && data.trainees){
-        renderCharts(data.projects, data.events, data.trainees);
-      }
+      if(data.projects && data.events && data.trainees) renderCharts(data.projects, data.events, data.trainees);
       if(data.achievements) renderAchievements(data.achievements);
       if(data.photos) renderPhotos(data.photos);
       if(data.partners) renderPartners(data.partners);
 
       if(failed.length){
-        setStatus('تم تحميل بعض البيانات ✅', true);
+        setStatus('لم يتم تحميل بعض البيانات. افتحي Console لمعرفة المصدر.', true);
         console.warn('CSV load issues:', failed);
       } else {
         setStatus('تم تحميل البيانات بنجاح ✅', true);
       }
     } catch(e){
       console.error(e);
-      setStatus('حدث خطأ أثناء عرض البيانات (تحققي من أسماء الأعمدة في الشيت).', false);
+      setStatus('حدث خطأ أثناء عرض البيانات. تحققي من أسماء الأعمدة في الشيت.', false);
     }
   })();
 
-  /* التبويبات (انتقال متحرك) */
-  const panes = Array.from(document.querySelectorAll('section[id^="tab-"]'));
-
-  function showPane(id){
-    panes.forEach(p=>{
-      if(p.id === id){
-        p.classList.remove('hidden');
-        p.classList.remove('isHidden');
-        // force reflow for transition
-        void p.offsetWidth;
-        p.style.height='';
-      } else {
-        p.classList.add('hidden');
-        // بعد انتهاء الحركة نخفيه نهائيًا
-        setTimeout(()=> p.classList.add('isHidden'), 360);
-      }
-    });
-  }
-
-  document.querySelectorAll('.tab').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      showPane('tab-'+btn.dataset.tab);
-    });
-  });
-
-  // ابدأ بإخفاء البقية بشكل صحيح
-  showPane('tab-overview');
-  });
-
-  /********************
-   * اختبارات بسيطة (Console) لضمان عدم كسر CSV parsing
-   ********************/
+  // Tests (keep + add)
   (function runTests(){
     try{
       const sample = 'Year,ProjectsCount
@@ -756,18 +633,13 @@
       console.assert(rows[0].Year==='2018', 'CSV header Year');
       console.assert(rows[1].ProjectsCount==='4', 'CSV value');
 
-      const sample2 = 'Name,Note
-"A, B","hello ""world"""
-';
-      const rows2 = parseCsv(sample2);
-      console.assert(rows2[0].Name==='A, B', 'Quoted comma');
-      console.assert(rows2[0].Note==='hello "world"', 'Escaped quotes');
-
-      // YouTube parsing
       console.assert(getYouTubeId('https://youtu.be/abcDEF12345')==='abcDEF12345', 'YouTube short link');
       console.assert(getYouTubeId('https://www.youtube.com/watch?v=abcDEF12345')==='abcDEF12345', 'YouTube watch link');
       console.assert(isYouTube('https://www.youtube.com/watch?v=abcDEF12345')===true, 'isYouTube true');
       console.assert(isYouTube('https://example.com/x.png')===false, 'isYouTube false');
+
+      // Drive ID parsing
+      console.assert(extractDriveId('https://drive.google.com/file/d/1LLgvdUM3usu0Q6IgAlrW1EGMs9WPN8yT/view?usp=drive_link')==='1LLgvdUM3usu0Q6IgAlrW1EGMs9WPN8yT', 'Drive file/d/<id>');
     } catch (e) {
       console.error('Tests failed', e);
     }
