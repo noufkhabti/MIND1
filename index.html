@@ -145,10 +145,14 @@
     .gallery{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
     @media (max-width: 900px){ .gallery{ grid-template-columns:repeat(2,1fr); } }
     @media (max-width: 520px){ .gallery{ grid-template-columns:1fr; } }
-    .photo{ width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:16px; box-shadow:var(--shadow); background:#f3f4f6; }
+    .photo{ width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:16px; box-shadow:var(--shadow); background:#f3f4f6; cursor:pointer; }
   </style>
 </head>
 <body>
+<!-- Lightbox -->
+<div id="lightbox" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65);z-index:9999;">
+  <img id="lightboxImg" style="max-width:92%;max-height:92%;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.35);" />
+</div>
 
 <header>
   <h1>مبادرة العقل يتنفس</h1>
@@ -158,7 +162,7 @@
 <div class="wrap">
 
   <div class="topbar">
-    <div class="pill">📊 مصدر البيانات: Google Sheets</div>
+    
     <div class="pill">📅 سنة التأسيس: <b>2018</b></div>
   </div>
 
@@ -205,7 +209,7 @@
     <div class="card">
       <h2>الإنجازات</h2>
       <div id="achievementsList" class="list"></div>
-      <p class="muted" style="margin:10px 0 0;">* يتم جلبها من تبويب Achievements (Title, Date, Description)</p>
+      
     </div>
   </section>
 
@@ -214,8 +218,8 @@
     <div class="card">
       <h2>الصور</h2>
       <div id="photosGrid" class="gallery"></div>
-      <p class="muted" style="margin:10px 0 0;">* يتم جلبها من تبويب Photos (ImageURL, Caption)</p>
-      <p class="muted" style="margin:6px 0 0;">* روابط Google Drive سيتم تحويلها تلقائيًا إلى روابط عرض مناسبة.</p>
+      
+      
     </div>
   </section>
 
@@ -224,7 +228,7 @@
     <div class="card">
       <h2>الشركاء</h2>
       <div id="partnersList" class="list"></div>
-      <p class="muted" style="margin:10px 0 0;">* يتم جلبها من تبويب Partners (Name, Type, Note)</p>
+      
     </div>
   </section>
 
@@ -418,6 +422,9 @@
 
   function renderPhotos(rows){
     const grid = document.getElementById('photosGrid');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+
     grid.innerHTML = '';
     if(!rows.length){ grid.innerHTML = '<div class="muted">لا توجد صور.</div>'; return; }
 
@@ -437,23 +444,12 @@
       img.src = candidates[idx];
       img.onerror = () => {
         idx++;
-        if(idx < candidates.length){
-          img.src = candidates[idx];
-        } else {
-          // فشل كل المحاولات: أظهر رابط قابل للنقر
-          img.onerror = null;
-          img.src = '';
-          img.style.display='none';
-          const a = document.createElement('a');
-          a.href = raw;
-          a.target = '_blank';
-          a.rel = 'noopener';
-          a.className = 'item';
-          a.style.display='block';
-          a.style.textDecoration='none';
-          a.innerHTML = `🔗 فتح الصورة في تبويب جديد<br><span class="muted">${escapeHtml(raw)}</span>`;
-          wrap.appendChild(a);
-        }
+        if(idx < candidates.length){ img.src = candidates[idx]; }
+      };
+
+      img.onclick = ()=>{
+        lightboxImg.src = img.src;
+        lightbox.style.display='flex';
       };
 
       wrap.appendChild(img);
@@ -466,6 +462,11 @@
       }
       grid.appendChild(wrap);
     });
+
+    lightbox.onclick = ()=>{
+      lightbox.style.display='none';
+      lightboxImg.src='';
+    };
   }
 
   /* تحميل البيانات */
