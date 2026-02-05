@@ -176,7 +176,7 @@
         <h2>نبذة عن المبادرة</h2>
         <p>
           <b>مبادرة العقل يتنفس</b> مبادرة <b>وقف تعليمي</b> تأسست عام <b>2018</b>،
-          تُعنى بتنمية التفكير، الابتكار، من خلال مشاريع تعليمية قائمة على <b>STEM</b>،
+          تُعنى بتنمية التفكير، الابتكار، والصحة النفسية، من خلال مشاريع تعليمية قائمة على <b>STEM</b>،
           وبما ينسجم مع مستهدفات <b>رؤية السعودية 2030</b>.
         </p>
         <div id="status" class="status muted">جاري تحميل البيانات…</div>
@@ -215,6 +215,7 @@
       <h2>الصور</h2>
       <div id="photosGrid" class="gallery"></div>
       <p class="muted" style="margin:10px 0 0;">* يتم جلبها من تبويب Photos (ImageURL, Caption)</p>
+      <p class="muted" style="margin:6px 0 0;">* روابط Google Drive سيتم تحويلها تلقائيًا إلى روابط عرض مناسبة.</p>
     </div>
   </section>
 
@@ -280,8 +281,13 @@
   }
 
   async function loadCSV(url){
+    // ملاحظة: إذا فتحتي الملف مباشرة عبر file:// قد يفشل fetch.
+    // الأفضل تشغيله عبر GitHub Pages أو أي سيرفر محلي.
     const res = await fetch(url, { cache: 'no-store' });
-    if(!res.ok) throw new Error(`CSV fetch failed: ${res.status}`);
+    if(!res.ok) {
+      const hint = `HTTP ${res.status}`;
+      throw new Error(`CSV fetch failed (${hint})`);
+    }
     const text = await res.text();
     return parseCsv(text);
   }
@@ -379,20 +385,77 @@
     });
   }
 
+  function extractDriveId(u){
+    const url = String(u||'').trim();
+    // file/d/<ID>/view
+    let m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if(m) return m[1];
+    // open?id=<ID>
+    m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if(m) return m[1];
+    // uc?export=view&id=<ID>
+    m = url.match(/uc\?[^#]*id=([a-zA-Z0-9_-]+)/);
+    if(m) return m[1];
+    // googleusercontent.com/d/<ID>
+    m = url.match(/googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/);
+    if(m) return m[1];
+    return null;
+  }
+
+  function buildImageCandidates(rawUrl){
+    const url = String(rawUrl||'').trim();
+    const id = extractDriveId(url);
+    if(!id) return [url];
+
+    // أكثر الروابط التي تعمل داخل <img> عادةً
+    return [
+      `https://drive.google.com/thumbnail?id=${id}&sz=w1200`,
+      `https://lh3.googleusercontent.com/d/${id}=w1200`,
+      `https://drive.google.com/uc?export=view&id=${id}`,
+      url
+    ];
+  }
+
   function renderPhotos(rows){
     const grid = document.getElementById('photosGrid');
     grid.innerHTML = '';
     if(!rows.length){ grid.innerHTML = '<div class="muted">لا توجد صور.</div>'; return; }
+
     rows.slice(0,60).forEach(r=>{
-      const url = r.ImageURL ?? r.image ?? r.URL ?? r.url;
-      if(!url) return;
+      const raw = r.ImageURL ?? r.image ?? r.URL ?? r.url;
+      if(!raw) return;
       const cap = r.Caption ?? r.caption ?? '';
+      const candidates = buildImageCandidates(raw);
+
       const wrap = document.createElement('div');
       const img = document.createElement('img');
       img.className='photo';
       img.loading='lazy';
-      img.src = url;
       img.alt = cap || 'صورة';
+
+      let idx = 0;
+      img.src = candidates[idx];
+      img.onerror = () => {
+        idx++;
+        if(idx < candidates.length){
+          img.src = candidates[idx];
+        } else {
+          // فشل كل المحاولات: أظهر رابط قابل للنقر
+          img.onerror = null;
+          img.src = '';
+          img.style.display='none';
+          const a = document.createElement('a');
+          a.href = raw;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.className = 'item';
+          a.style.display='block';
+          a.style.textDecoration='none';
+          a.innerHTML = `🔗 فتح الصورة في تبويب جديد<br><span class="muted">${escapeHtml(raw)}</span>`;
+          wrap.appendChild(a);
+        }
+      };
+
       wrap.appendChild(img);
       if(cap){
         const c = document.createElement('div');
@@ -407,25 +470,47 @@
 
   /* تحميل البيانات */
   (async()=>{
+    // نستخدم allSettled حتى لو ملف واحد فشل ما يوقف الباقي
+    const results = await Promise.allSettled([
+      loadCSV(SHEETS.projects),
+      loadCSV(SHEETS.events),
+      loadCSV(SHEETS.trainees),
+      loadCSV(SHEETS.achievements),
+      loadCSV(SHEETS.photos),
+      loadCSV(SHEETS.partners),
+    ]);
+
+    const names = ['projects','events','trainees','achievements','photos','partners'];
+    const data = {};
+    const failed = [];
+
+    results.forEach((r,i)=>{
+      if(r.status==='fulfilled') data[names[i]] = r.value;
+      else failed.push(`${names[i]}: ${r.reason?.message || r.reason}`);
+    });
+
     try{
-      const [projects, events, trainees, achievements, photos, partners] = await Promise.all([
-        loadCSV(SHEETS.projects),
-        loadCSV(SHEETS.events),
-        loadCSV(SHEETS.trainees),
-        loadCSV(SHEETS.achievements),
-        loadCSV(SHEETS.photos),
-        loadCSV(SHEETS.partners),
-      ]);
+      if(data.projects && data.events && data.trainees){
+        renderCharts(data.projects, data.events, data.trainees);
+      }
+      if(data.achievements) renderAchievements(data.achievements);
+      if(data.photos) renderPhotos(data.photos);
+      if(data.partners) renderPartners(data.partners);
 
-      renderCharts(projects, events, trainees);
-      renderAchievements(achievements);
-      renderPhotos(photos);
-      renderPartners(partners);
-
-      setStatus('تم تحميل البيانات بنجاح ✅', true);
-    }catch(e){
+      if(failed.length){
+        setStatus('تم تحميل بعض البيانات ✅ (يوجد ملفات لم تُحمّل)', true);
+        console.warn('CSV load issues:', failed);
+      } else {
+        setStatus('تم تحميل البيانات بنجاح ✅', true);
+      }
+    } catch(e){
       console.error(e);
-      setStatus('خطأ في تحميل البيانات — تأكدي من نشر التبويبات كـ CSV وأن الأعمدة صحيحة.', false);
+      setStatus('حدث خطأ أثناء عرض البيانات (تحققي من أسماء الأعمدة في الشيت).', false);
+    }
+
+    // إذا في ملفات فشلت: أعرض تلميح واضح في الـ Console
+    if(failed.length){
+      console.warn('Fix hints: تأكدي أن Google Sheet منشور Public كـ CSV، وشغلي الصفحة عبر GitHub Pages وليس file://');
     }
   })();
 
