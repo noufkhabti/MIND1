@@ -63,9 +63,10 @@
     .status.err{ color:#dc2626; }
 
     /* تبويبات بحركة */
+    /* Tab panes (simple + reliable) */
+    [hidden]{ display:none !important; }
     .tabPane{ opacity:1; transform:none; transition: opacity .25s ease, transform .25s ease; }
-    .tabPane.fadeOut{ opacity:0; transform:translateY(10px); pointer-events:none; }
-    .isHidden{ display:none !important; }
+    .tabPane.enter{ opacity:0; transform:translateY(10px); }
 
     /* Lists & gallery */
     .list{ display:grid; gap:10px; }
@@ -166,6 +167,8 @@
           وبما ينسجم مع مستهدفات <b>رؤية السعودية 2030</b>.
         </p>
         <div id="status" class="status muted">جاري تحميل البيانات…</div>
+        <div id="debug" class="muted" style="margin-top:10px; display:none; line-height:1.8;"></div>
+        <button id="retryBtn" class="tab" style="display:none; margin-top:10px;">إعادة المحاولة</button>
       </div>
 
       <div class="card">
@@ -187,7 +190,7 @@
   </section>
 
   <!-- Achievements -->
-  <section id="tab-achievements" class="tabPane isHidden">
+  <section id="tab-achievements" class="tabPane" hidden>
     <div class="card">
       <h2>الإنجازات</h2>
       <div id="achievementsList" class="list"></div>
@@ -195,7 +198,7 @@
   </section>
 
   <!-- Photos -->
-  <section id="tab-photos" class="tabPane isHidden">
+  <section id="tab-photos" class="tabPane" hidden>
     <div class="card">
       <h2>الصور</h2>
       <div id="photosGrid" class="gallery"></div>
@@ -203,7 +206,7 @@
   </section>
 
   <!-- Partners -->
-  <section id="tab-partners" class="tabPane isHidden">
+  <section id="tab-partners" class="tabPane" hidden>
     <div class="card">
       <h2>الشركاء</h2>
       <div id="partnersList" class="list"></div>
@@ -551,19 +554,18 @@
     }, {passive:true});
   }
 
-  // Tabs (animated)
+  // Tabs (reliable)
   const panes = Array.from(document.querySelectorAll('section[id^="tab-"]'));
+
   function showPane(id){
     panes.forEach(p=>{
       if(p.id === id){
-        p.classList.remove('isHidden');
-        p.classList.remove('fadeOut');
-        // reflow to allow transition
-        void p.offsetWidth;
-        p.style.pointerEvents='auto';
+        p.hidden = false;
+        // enter animation
+        p.classList.add('enter');
+        requestAnimationFrame(()=> p.classList.remove('enter'));
       } else {
-        p.classList.add('fadeOut');
-        setTimeout(()=> p.classList.add('isHidden'), 260);
+        p.hidden = true;
       }
     });
 
@@ -571,7 +573,7 @@
     if(id === 'tab-overview'){
       setTimeout(()=>{
         try{ chProjects?.resize(); chEvents?.resize(); chStudents?.resize(); chTraineesByYear?.resize(); }catch(_e){}
-      }, 280);
+      }, 120);
     }
   }
 
@@ -584,41 +586,60 @@
   });
   showPane('tab-overview');
 
-  // Load data (robust)
+  // Load data (robust + visible diagnostics)
   (async()=>{
-    const results = await Promise.allSettled([
-      loadCSV(SHEETS.projects),
-      loadCSV(SHEETS.events),
-      loadCSV(SHEETS.trainees),
-      loadCSV(SHEETS.achievements),
-      loadCSV(SHEETS.photos),
-      loadCSV(SHEETS.partners),
-    ]);
+    const retryBtn = document.getElementById('retryBtn');
+    const debug = document.getElementById('debug');
 
-    const names = ['projects','events','trainees','achievements','photos','partners'];
-    const data = {};
-    const failed = [];
-    results.forEach((r,i)=>{
-      if(r.status==='fulfilled') data[names[i]] = r.value;
-      else failed.push(`${names[i]}: ${r.reason?.message || r.reason}`);
-    });
+    async function run(){
+      retryBtn.style.display='none';
+      debug.style.display='none';
+      debug.innerHTML='';
+      setStatus('جاري تحميل البيانات…', true);
 
-    try{
-      if(data.projects && data.events && data.trainees) renderCharts(data.projects, data.events, data.trainees);
-      if(data.achievements) renderAchievements(data.achievements);
-      if(data.photos) renderPhotos(data.photos);
-      if(data.partners) renderPartners(data.partners);
+      const results = await Promise.allSettled([
+        loadCSV(SHEETS.projects),
+        loadCSV(SHEETS.events),
+        loadCSV(SHEETS.trainees),
+        loadCSV(SHEETS.achievements),
+        loadCSV(SHEETS.photos),
+        loadCSV(SHEETS.partners),
+      ]);
 
-      if(failed.length){
-        setStatus('لم يتم تحميل بعض البيانات. افتحي Console لمعرفة المصدر.', true);
-        console.warn('CSV load issues:', failed);
-      } else {
-        setStatus('تم تحميل البيانات بنجاح ✅', true);
+      const names = ['projects','events','trainees','achievements','photos','partners'];
+      const data = {};
+      const failed = [];
+      results.forEach((r,i)=>{
+        if(r.status==='fulfilled') data[names[i]] = r.value;
+        else failed.push({ name:names[i], err: (r.reason?.message || String(r.reason||'')) });
+      });
+
+      try{
+        if(data.projects && data.events && data.trainees) renderCharts(data.projects, data.events, data.trainees);
+        if(data.achievements) renderAchievements(data.achievements);
+        if(data.photos) renderPhotos(data.photos);
+        if(data.partners) renderPartners(data.partners);
+
+        if(failed.length){
+          setStatus('تعذّر تحميل بعض البيانات. تأكدي أن الشيت منشور Public كـ CSV.', true);
+          debug.style.display='block';
+          debug.innerHTML = '<b>تفاصيل:</b><br>' + failed.map(f=>`• ${escapeHtml(f.name)} — ${escapeHtml(f.err)}`).join('<br>') +
+            '<br><br><span class="muted">نصيحة: افتحي الروابط في المتصفح وتاكدي أنها تعرض CSV (وليس صفحة Google Sheet)، ثم جرّبي من GitHub Pages وليس file://</span>';
+          retryBtn.style.display='inline-flex';
+        } else {
+          setStatus('تم تحميل البيانات بنجاح ✅', true);
+        }
+      } catch(e){
+        console.error(e);
+        setStatus('حدث خطأ أثناء عرض البيانات. تحققي من أسماء الأعمدة في الشيت.', false);
+        debug.style.display='block';
+        debug.innerHTML = `<b>خطأ:</b> ${escapeHtml(e.message || String(e))}`;
+        retryBtn.style.display='inline-flex';
       }
-    } catch(e){
-      console.error(e);
-      setStatus('حدث خطأ أثناء عرض البيانات. تحققي من أسماء الأعمدة في الشيت.', false);
     }
+
+    retryBtn.addEventListener('click', run);
+    await run();
   })();
 
   // Tests (keep + add)
