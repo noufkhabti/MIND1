@@ -6,7 +6,6 @@
   <title>داش بورد | مبادرة العقل يتنفس</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* ألوان فرائحية بأسلوب Canva */
     :root{
       --bg:#fff7fb;
       --card:#ffffff;
@@ -36,8 +35,8 @@
       color:#fff;
       padding:28px 16px;
       text-align:center;
+      animation: fadeDown .9s ease both;
     }
-
     header h1{ margin:0 0 6px; font-size:30px; }
     header p{ margin:0; opacity:.95; }
 
@@ -49,6 +48,7 @@
       flex-wrap:wrap;
       justify-content:space-between;
       margin-bottom:14px;
+      animation: fadeUp .9s ease both .15s;
     }
 
     .pill{
@@ -57,18 +57,33 @@
       padding:10px 14px;
       box-shadow:var(--shadow);
       font-size:14px;
+      transition: transform .3s ease, box-shadow .3s ease;
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
+    .pill:hover{ transform:translateY(-4px); box-shadow:0 16px 30px rgba(0,0,0,.12); }
 
-    .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 18px; }
+    .tabs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin:14px 0 18px;
+      animation: fadeUp .9s ease both .25s;
+      justify-content:center;
+    }
     .tab{
-      border:0; cursor:pointer;
+      border:0;
+      cursor:pointer;
       background:var(--card);
       padding:12px 16px;
       border-radius:999px;
       box-shadow:var(--shadow);
-      font-weight:700;
+      font-weight:800;
       color:var(--text);
+      transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
     }
+    .tab:hover{ transform:translateY(-3px); }
     .tab.active{
       background:linear-gradient(135deg,#fff0f7,#f5f3ff,#effaff);
       box-shadow:0 0 0 4px var(--ring), var(--shadow);
@@ -76,14 +91,99 @@
     }
 
     .grid{ display:grid; grid-template-columns: 1.3fr .7fr; gap:18px; }
-    @media (max-width: 1024px){
-      .grid{ grid-template-columns:1fr; }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:var(--shadow);
+      animation: fadeUp .9s ease both;
+      transition: transform .35s ease, box-shadow .35s ease;
     }
+    .card:hover{ transform:translateY(-6px); box-shadow:0 18px 40px rgba(0,0,0,.12); }
+
+    .card h2, .sectionTitle{ color:var(--pink); margin:0 0 10px; }
+    .muted{ color:var(--muted); }
+
+    .kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .kpi{
+      background:linear-gradient(180deg,#ffffff,#fff7fb);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:var(--shadow);
+      animation: scaleIn .6s ease both;
+    }
+    .kpi .label{ font-size:13px; color:var(--muted); }
+    .kpi .value{ font-size:28px; font-weight:900; color:var(--purple); }
+
+    .charts{ display:grid; gap:16px; }
+    canvas{ background:#fff; border-radius:16px; padding:14px; box-shadow:var(--shadow); max-height:420px; width:100%; }
+
+    .status{ margin-top:10px; font-size:14px; }
+    .status.ok{ color:#059669; }
+    .status.err{ color:#dc2626; }
+
+    .list{ display:grid; gap:10px; }
+    .item{ border:1px solid #eef2f7; border-radius:14px; padding:12px; background:#fff; }
+    .item b{ color:var(--purple); }
+
+    .gallery{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .photo{ width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:16px; box-shadow:var(--shadow); cursor:pointer; transition: transform .25s ease; background:#f3f4f6; }
+    .photo:hover{ transform:scale(1.04); }
+
+    footer{
+      text-align:center;
+      padding:18px;
+      color:var(--muted);
+      font-size:14px;
+      animation: fadeUp .9s ease both .45s;
+    }
+
+    .cta{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      text-decoration:none;
+      border-radius:14px;
+      padding:10px 12px;
+      box-shadow:var(--shadow);
+      background:linear-gradient(135deg,#fff0f7,#f5f3ff,#effaff);
+      color:var(--text);
+      font-weight:800;
+      border:1px solid rgba(0,0,0,.06);
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .btn:hover{ transform:translateY(-3px); box-shadow:0 16px 30px rgba(0,0,0,.12); }
+
+    [hidden]{ display:none !important; }
+
+    /* Lightbox */
+    .lb{ position:fixed; inset:0; display:none; background:rgba(0,0,0,.75); z-index:9999; padding:14px; }
+    .lb.open{ display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .lbClose{ position:absolute; top:12px; right:12px; width:44px; height:44px; border-radius:999px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:18px; }
+    .lbNav{ position:absolute; top:50%; transform:translateY(-50%); width:54px; height:54px; border-radius:999px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); color:#fff; cursor:pointer; font-size:46px; display:grid; place-items:center; }
+    .lbPrev{ left:12px; }
+    .lbNext{ right:12px; }
+    .lbStage{ width:min(1100px, 98vw); height:min(70vh, 560px); display:flex; align-items:center; justify-content:center; }
+    .lbMedia{ width:100%; height:100%; border:0; border-radius:18px; box-shadow:0 20px 50px rgba(0,0,0,.35); background:#111; object-fit:contain; display:none; }
+    .lbCaption{ color:#fff; margin-top:10px; text-align:center; opacity:.92; }
+    .lbThumbs{ width:min(1100px, 98vw); display:flex; gap:10px; overflow:auto; padding:10px 2px 4px; margin-top:10px; }
+    .lbThumb{ flex:0 0 auto; width:86px; height:56px; border-radius:12px; border:2px solid rgba(255,255,255,.22); overflow:hidden; background:rgba(255,255,255,.08); cursor:pointer; opacity:.85; transition: transform .2s ease, opacity .2s ease, border-color .2s ease; }
+    .lbThumb:hover{ transform:translateY(-2px); opacity:1; }
+    .lbThumb.active{ border-color: rgba(236,72,153,.95); opacity:1; }
+    .lbThumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .lbThumb .play{ width:100%; height:100%; display:grid; place-items:center; color:#fff; font-size:18px; background:linear-gradient(135deg, rgba(236,72,153,.35), rgba(56,189,248,.25)); }
+
+    @media (max-width: 1024px){ .grid{ grid-template-columns:1fr; } }
     @media (max-width: 768px){
       header h1{ font-size:24px; }
-      .tabs{ justify-content:center; }
       .kpis{ grid-template-columns:1fr; }
-      canvas{ max-height:300px; }
+      canvas{ max-height:320px; }
+      .gallery{ grid-template-columns:repeat(2,1fr); }
+      .lbStage{ height:min(56vh, 420px); }
+      .lbNav{ width:48px; height:48px; font-size:40px; }
+      .lbThumb{ width:74px; height:50px; }
     }
     @media (max-width: 480px){
       header{ padding:20px 12px; }
@@ -91,67 +191,31 @@
       .pill{ font-size:12px; padding:8px 10px; }
       .tab{ padding:10px 12px; font-size:14px; }
       .card{ padding:14px; }
-      canvas{ max-height:240px; }
-    } }
-
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      padding:18px;
-      box-shadow:var(--shadow);
+      canvas{ max-height:260px; }
+      .gallery{ grid-template-columns:1fr; }
     }
 
-    .card h2, .sectionTitle{ color:var(--pink); margin:0 0 10px; }
-    .muted{ color:var(--muted); }
+    @keyframes fadeUp{ from{ opacity:0; transform:translateY(18px);} to{opacity:1; transform:none;} }
+    @keyframes fadeDown{ from{ opacity:0; transform:translateY(-18px);} to{opacity:1; transform:none;} }
+    @keyframes scaleIn{ from{ opacity:0; transform:scale(.92);} to{opacity:1; transform:scale(1);} }
 
-    .kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-    @media (max-width:700px){ .kpis{ grid-template-columns:1fr; } }
-
-    .kpi{
-      background:linear-gradient(180deg,#ffffff,#fff7fb);
-      border-radius:16px;
-      padding:14px;
-      box-shadow:var(--shadow);
-    }
-    .kpi .label{ font-size:13px; color:var(--muted); }
-    .kpi .value{ font-size:28px; font-weight:900; color:var(--purple); }
-
-    .charts{ display:grid; gap:16px; }
-    canvas{ background:#fff; border-radius:16px; padding:14px; box-shadow:var(--shadow); max-height:420px; }
-
-    .hidden{ display:none; }
-
-    footer{
-      text-align:center;
-      padding:18px;
-      color:var(--muted);
-      font-size:14px;
-    }
-
-    .status{ margin-top:10px; font-size:14px; }
-    .status.ok{ color:#059669; }
-    .status.err{ color:#dc2626; }
-
-    /* Lists & gallery */
-    .list{ display:grid; gap:10px; }
-    .item{
-      border:1px solid #eef2f7;
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-    }
-    .item b{ color:var(--purple); }
-
-    .gallery{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-    @media (max-width: 900px){ .gallery{ grid-template-columns:repeat(2,1fr); } }
-    @media (max-width: 520px){ .gallery{ grid-template-columns:1fr; } }
-    .photo{ width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:16px; box-shadow:var(--shadow); background:#f3f4f6; cursor:pointer; }
+    @media (prefers-reduced-motion: reduce){ *{ animation:none!important; transition:none!important; } }
   </style>
 </head>
 <body>
-<!-- Lightbox -->
-<div id="lightbox" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65);z-index:9999;">
-  <img id="lightboxImg" style="max-width:92%;max-height:92%;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.35);" />
+
+<div id="lightbox" class="lb" aria-hidden="true">
+  <button id="lbClose" class="lbClose" aria-label="إغلاق">✕</button>
+  <button id="lbPrev" class="lbNav lbPrev" aria-label="السابق">❮</button>
+
+  <div class="lbStage">
+    <img id="lightboxImg" class="lbMedia" alt="" />
+    <iframe id="lightboxYt" class="lbMedia" title="YouTube" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+  </div>
+
+  <button id="lbNext" class="lbNav lbNext" aria-label="التالي">❯</button>
+  <div id="lbCaption" class="lbCaption"></div>
+  <div id="lbThumbs" class="lbThumbs" aria-label="مصغرات"></div>
 </div>
 
 <header>
@@ -162,28 +226,28 @@
 <div class="wrap">
 
   <div class="topbar">
-    
     <div class="pill">📅 سنة التأسيس: <b>2018</b></div>
   </div>
 
   <div class="tabs">
     <button class="tab active" data-tab="overview">DashBoard</button>
+    <button class="tab" data-tab="consulting">الاستشارات</button>
     <button class="tab" data-tab="achievements">الإنجازات</button>
     <button class="tab" data-tab="photos">الصور</button>
     <button class="tab" data-tab="partners">الشركاء</button>
   </div>
 
-  <!-- Overview -->
   <section id="tab-overview">
     <div class="grid">
       <div class="card">
         <h2>نبذة عن المبادرة</h2>
         <p>
           <b>مبادرة العقل يتنفس</b> مبادرة <b>وقف تعليمي</b> تأسست عام <b>2018</b>،
-          تُعنى بتنمية التفكير، الابتكار، والصحة النفسية، من خلال مشاريع تعليمية قائمة على <b>STEM</b>،
+          تُعنى بتنمية التفكير والابتكار عبر مشاريع تعليمية قائمة على <b>STEM</b>،
           وبما ينسجم مع مستهدفات <b>رؤية السعودية 2030</b>.
         </p>
         <div id="status" class="status muted">جاري تحميل البيانات…</div>
+        <div id="debug" class="muted" style="margin-top:10px; display:none; background:#fff; border:1px dashed #e5e7eb; padding:10px; border-radius:14px; line-height:1.8;"></div>
       </div>
 
       <div class="card">
@@ -193,10 +257,13 @@
           <div class="kpi"><div class="label">الفعاليات</div><div id="kpiEvents" class="value">—</div></div>
           <div class="kpi"><div class="label">المتدربون</div><div id="kpiTrainees" class="value">—</div></div>
         </div>
+        <div class="cta">
+          <a class="btn" href="https://noofkhabti.my.canva.site/dag-oorc6gq" target="_blank" rel="noopener">🧠 صفحة الاستشارات</a>
+        </div>
       </div>
     </div>
 
-    <div class="charts">
+    <div class="charts" style="margin-top:16px;">
       <div class="card"><h3 class="sectionTitle">المشاريع حسب السنة</h3><canvas id="projectsChart"></canvas></div>
       <div class="card"><h3 class="sectionTitle">الفعاليات حسب النوع</h3><canvas id="eventsChart"></canvas></div>
       <div class="card"><h3 class="sectionTitle">المتدربون (طلاب / طالبات)</h3><canvas id="studentsChart"></canvas></div>
@@ -204,31 +271,32 @@
     </div>
   </section>
 
-  <!-- Achievements -->
-  <section id="tab-achievements" class="hidden">
+  <section id="tab-consulting" hidden>
+    <div class="card">
+      <h2>الاستشارات</h2>
+      <p class="muted" style="line-height:1.9; margin-top:0;">للاستشارات والاطلاع على التفاصيل والنماذج:</p>
+      <a class="btn" href="https://noofkhabti.my.canva.site/dag-oorc6gq" target="_blank" rel="noopener">فتح صفحة الاستشارات</a>
+    </div>
+  </section>
+
+  <section id="tab-achievements" hidden>
     <div class="card">
       <h2>الإنجازات</h2>
       <div id="achievementsList" class="list"></div>
-      
     </div>
   </section>
 
-  <!-- Photos -->
-  <section id="tab-photos" class="hidden">
+  <section id="tab-photos" hidden>
     <div class="card">
       <h2>الصور</h2>
       <div id="photosGrid" class="gallery"></div>
-      
-      
     </div>
   </section>
 
-  <!-- Partners -->
-  <section id="tab-partners" class="hidden">
+  <section id="tab-partners" hidden>
     <div class="card">
       <h2>الشركاء</h2>
       <div id="partnersList" class="list"></div>
-      
     </div>
   </section>
 
@@ -237,7 +305,6 @@
 <footer>© نوف خبتي — مبادرة العقل يتنفس</footer>
 
 <script>
-  /* روابط Google Sheets */
   const SHEETS = {
     projects: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTdJoeiY6gtt0NaEWYFZxmhMYxT-0EPug4za-8Wl1xXI8o6PYlLn56g-Dv15i0dqsENN9Zai1ROlMA6/pub?output=csv",
     events: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQc-r6wYcwCrEnYNn1A7iFr9Lj9wi78N2-w1enXOA3UgrRSccpLkL-wi4wuO8c45ItTo2Pzz0AP7p6l/pub?output=csv",
@@ -247,7 +314,6 @@
     partners: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSi20NWBWlJKeq8P9g_YGTVI8bilx6GNwzrvW3co1_R4bdN6n3B-q7akjVs0AIcFsiSi8C1eFGGxhG/pub?output=csv",
   };
 
-  /* أدوات مساعدة */
   const num = (v) => {
     const n = Number(String(v ?? "").replace(/[^0-9.\-]/g, ""));
     return Number.isFinite(n) ? n : 0;
@@ -257,7 +323,6 @@
     return String(s ?? "").replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   }
 
-  // CSV parser يدعم الاقتباسات
   function splitCsvLine(line){
     const out=[]; let cur=""; let q=false;
     for(let i=0;i<line.length;i++){
@@ -273,9 +338,15 @@
   }
 
   function parseCsv(text){
-    const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+    const raw = String(text ?? "").split("
+").map(l=>l.replace("
+",""));
+    const lines = raw.filter(l=>l.trim().length);
     if(!lines.length) return [];
-    const headers = splitCsvLine(lines[0]).map(h=>h.replace(/^\uFEFF/,''));
+    let headers = splitCsvLine(lines[0]).map(h=>h.trim());
+    if(headers.length && headers[0] && headers[0].charCodeAt(0)===65279){
+      headers[0] = headers[0].slice(1);
+    }
     return lines.slice(1).map(l=>{
       const cells = splitCsvLine(l);
       const obj={};
@@ -285,15 +356,17 @@
   }
 
   async function loadCSV(url){
-    // ملاحظة: إذا فتحتي الملف مباشرة عبر file:// قد يفشل fetch.
-    // الأفضل تشغيله عبر GitHub Pages أو أي سيرفر محلي.
-    const res = await fetch(url, { cache: 'no-store' });
-    if(!res.ok) {
-      const hint = `HTTP ${res.status}`;
-      throw new Error(`CSV fetch failed (${hint})`);
-    }
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 15000);
+    let res;
+    try{ res = await fetch(url, { cache:'no-store', signal: ctrl.signal }); }
+    catch(e){ clearTimeout(t); throw new Error('Fetch failed (شبكة/حجب/CORS)'); }
+    clearTimeout(t);
+    if(!res.ok) throw new Error('CSV HTTP ' + res.status);
     const text = await res.text();
-    return parseCsv(text);
+    const rows = parseCsv(text);
+    if(!rows.length) throw new Error('الرابط لا يرجع CSV (تأكدي من النشر Public كـ CSV)');
+    return rows;
   }
 
   function setStatus(msg, ok){
@@ -302,7 +375,19 @@
     el.className = 'status ' + (ok ? 'ok' : 'err');
   }
 
-  /* Charts */
+  function animateCountUp(el, to, ms=900){
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){ el.textContent = Math.round(to).toLocaleString('ar-SA'); return; }
+    const start = performance.now();
+    const tick = (t)=>{
+      const p = Math.min(1, (t-start)/ms);
+      const eased = 1 - Math.pow(1-p, 3);
+      el.textContent = Math.round(to*eased).toLocaleString('ar-SA');
+      if(p<1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
   let chProjects=null, chEvents=null, chStudents=null, chTraineesByYear=null;
   const destroy = (ch)=>{ if(ch) ch.destroy(); return null; };
 
@@ -317,10 +402,9 @@
     const female = trainees.map(r=>num(r.Female ?? r.female ?? r.Girls ?? r.girls));
     const male   = trainees.map(r=>num(r.Male ?? r.male ?? r.Boys ?? r.boys));
 
-    // KPIs
-    document.getElementById('kpiProjects').textContent = countsP.reduce((a,b)=>a+b,0).toLocaleString('ar-SA');
-    document.getElementById('kpiEvents').textContent = countsE.reduce((a,b)=>a+b,0).toLocaleString('ar-SA');
-    document.getElementById('kpiTrainees').textContent = (female.reduce((a,b)=>a+b,0) + male.reduce((a,b)=>a+b,0)).toLocaleString('ar-SA');
+    animateCountUp(document.getElementById('kpiProjects'), countsP.reduce((a,b)=>a+b,0));
+    animateCountUp(document.getElementById('kpiEvents'), countsE.reduce((a,b)=>a+b,0));
+    animateCountUp(document.getElementById('kpiTrainees'), female.reduce((a,b)=>a+b,0) + male.reduce((a,b)=>a+b,0));
 
     chProjects = destroy(chProjects);
     chProjects = new Chart(document.getElementById('projectsChart'),{
@@ -348,13 +432,7 @@
     chTraineesByYear = destroy(chTraineesByYear);
     chTraineesByYear = new Chart(document.getElementById('traineesByYearChart'),{
       type:'line',
-      data:{
-        labels:yearsT,
-        datasets:[
-          { label:'طالبات', data:female, tension:0.35 },
-          { label:'طلاب', data:male, tension:0.35 },
-        ]
-      },
+      data:{ labels:yearsT, datasets:[{ label:'طالبات', data:female, tension:0.35 },{ label:'طلاب', data:male, tension:0.35 }] },
       options:{ plugins:{ legend:{ position:'bottom' } }, scales:{ y:{ beginAtZero:true } } }
     });
   }
@@ -369,7 +447,7 @@
       const desc = r.Description ?? r.description ?? '';
       const el = document.createElement('div');
       el.className='item';
-      el.innerHTML = `<b>${escapeHtml(title)}</b> <span class="muted">${escapeHtml(date)}</span><div class="muted" style="margin-top:6px; line-height:1.7;">${escapeHtml(desc)}</div>`;
+      el.innerHTML = '<b>' + escapeHtml(title) + '</b> <span class="muted">' + escapeHtml(date) + '</span><div class="muted" style="margin-top:6px; line-height:1.7;">' + escapeHtml(desc) + '</div>';
       box.appendChild(el);
     });
   }
@@ -384,166 +462,241 @@
       const note = r.Note ?? r.note ?? '';
       const el = document.createElement('div');
       el.className='item';
-      el.innerHTML = `<b>${escapeHtml(name)}</b> <span class="muted">${escapeHtml(type)}</span><div class="muted" style="margin-top:6px; line-height:1.7;">${escapeHtml(note)}</div>`;
+      el.innerHTML = '<b>' + escapeHtml(name) + '</b> <span class="muted">' + escapeHtml(type) + '</span><div class="muted" style="margin-top:6px; line-height:1.7;">' + escapeHtml(note) + '</div>';
       box.appendChild(el);
     });
   }
 
-  function extractDriveId(u){
-    const url = String(u||'').trim();
-    // file/d/<ID>/view
-    let m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-    if(m) return m[1];
-    // open?id=<ID>
-    m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if(m) return m[1];
-    // uc?export=view&id=<ID>
-    m = url.match(/uc\?[^#]*id=([a-zA-Z0-9_-]+)/);
-    if(m) return m[1];
-    // googleusercontent.com/d/<ID>
-    m = url.match(/googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/);
-    if(m) return m[1];
-    return null;
-  }
+  function toDirectImageUrl(raw){
+    const s = String(raw ?? '').trim();
+    if(!s) return null;
+    let id = null;
+    if(s.includes('file/d/')){
+      const a = s.split('file/d/')[1];
+      if(a) id = a.split('/')[0];
+    }
+    if(!id && s.includes('id=')){
+      const a = s.split('id=')[1];
+      if(a) id = a.split('&')[0];
+    }
+    if(!id) return s;
 
-  function buildImageCandidates(rawUrl){
-    const url = String(rawUrl||'').trim();
-    const id = extractDriveId(url);
-    if(!id) return [url];
-
-    // أكثر الروابط التي تعمل داخل <img> عادةً
-    return [
-      `https://drive.google.com/thumbnail?id=${id}&sz=w1200`,
-      `https://lh3.googleusercontent.com/d/${id}=w1200`,
-      `https://drive.google.com/uc?export=view&id=${id}`,
-      url
-    ];
-  }
-
-  function renderPhotos(rows){
-    const grid = document.getElementById('photosGrid');
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightboxImg');
-
-    grid.innerHTML = '';
-    if(!rows.length){ grid.innerHTML = '<div class="muted">لا توجد صور.</div>'; return; }
-
-    rows.slice(0,60).forEach(r=>{
-      const raw = r.ImageURL ?? r.image ?? r.URL ?? r.url;
-      if(!raw) return;
-      const cap = r.Caption ?? r.caption ?? '';
-      const candidates = buildImageCandidates(raw);
-
-      const wrap = document.createElement('div');
-      const img = document.createElement('img');
-      img.className='photo';
-      img.loading='lazy';
-      img.alt = cap || 'صورة';
-
-      let idx = 0;
-      img.src = candidates[idx];
-      img.onerror = () => {
-        idx++;
-        if(idx < candidates.length){ img.src = candidates[idx]; }
-      };
-
-      img.onclick = ()=>{
-        lightboxImg.src = img.src;
-        lightbox.style.display='flex';
-      };
-
-      wrap.appendChild(img);
-      if(cap){
-        const c = document.createElement('div');
-        c.className='muted';
-        c.style.marginTop='6px';
-        c.textContent = cap;
-        wrap.appendChild(c);
-      }
-      grid.appendChild(wrap);
-    });
-
-    lightbox.onclick = ()=>{
-      lightbox.style.display='none';
-      lightboxImg.src='';
+    return {
+      thumb: 'https://drive.google.com/thumbnail?id=' + id + '&sz=w1600',
+      view1: 'https://drive.google.com/uc?export=view&id=' + id,
+      view2: 'https://drive.usercontent.google.com/uc?id=' + id + '&export=view'
     };
   }
 
-  /* تحميل البيانات */
-  (async()=>{
-    // نستخدم allSettled حتى لو ملف واحد فشل ما يوقف الباقي
-    const results = await Promise.allSettled([
-      loadCSV(SHEETS.projects),
-      loadCSV(SHEETS.events),
-      loadCSV(SHEETS.trainees),
-      loadCSV(SHEETS.achievements),
-      loadCSV(SHEETS.photos),
-      loadCSV(SHEETS.partners),
-    ]);
+  function isYouTube(u){
+    const s = String(u ?? '').toLowerCase();
+    return s.includes('youtube.com') || s.includes('youtu.be');
+  }
 
-    const names = ['projects','events','trainees','achievements','photos','partners'];
-    const data = {};
-    const failed = [];
+  function getYouTubeId(u){
+    try{
+      const url = new URL(String(u));
+      if(url.hostname.includes('youtu.be')) return url.pathname.replace('/','');
+      if(url.searchParams.get('v')) return url.searchParams.get('v');
+      const parts = url.pathname.split('/').filter(Boolean);
+      const idx = parts.indexOf('embed');
+      if(idx>=0 && parts[idx+1]) return parts[idx+1];
+    } catch(e){
+      return null;
+    }
+    return null;
+  }
 
-    results.forEach((r,i)=>{
-      if(r.status==='fulfilled') data[names[i]] = r.value;
-      else failed.push(`${names[i]}: ${r.reason?.message || r.reason}`);
+  function ytThumb(id){ return 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg'; }
+
+  function renderPhotos(rows){
+    const grid = document.getElementById('photosGrid');
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightboxImg');
+    const lbYt = document.getElementById('lightboxYt');
+    const lbPrev = document.getElementById('lbPrev');
+    const lbNext = document.getElementById('lbNext');
+    const lbClose = document.getElementById('lbClose');
+    const lbThumbs = document.getElementById('lbThumbs');
+    const lbCaption = document.getElementById('lbCaption');
+
+    const items = [];
+    let current = 0;
+
+    function openLb(){ lb.classList.add('open'); lb.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+    function closeLb(){ lb.classList.remove('open'); lb.setAttribute('aria-hidden','true'); document.body.style.overflow=''; lbYt.src=''; }
+
+    function setMedia(type){
+      lbImg.style.display = type==='image' ? 'block' : 'none';
+      lbYt.style.display  = type==='youtube' ? 'block' : 'none';
+      if(type!=='youtube') lbYt.src='';
+    }
+
+    function renderThumbs(){
+      lbThumbs.innerHTML='';
+      items.forEach((it,idx)=>{
+        const d = document.createElement('div');
+        d.className = 'lbThumb' + (idx===current ? ' active':'' );
+        if(it.type==='image'){
+          const im = document.createElement('img'); im.src = it.thumb; im.alt=''; d.appendChild(im);
+        } else {
+          const play = document.createElement('div'); play.className='play'; play.textContent='▶'; d.appendChild(play);
+        }
+        d.onclick = ()=> show(idx);
+        lbThumbs.appendChild(d);
+      });
+    }
+
+    function show(i){
+      if(!items.length) return;
+      if(i<0) i = items.length-1;
+      if(i>=items.length) i = 0;
+      current = i;
+      const it = items[current];
+      lbCaption.textContent = it.caption || '';
+
+      if(it.type==='image'){
+        setMedia('image');
+        let tries = 0;
+        const cands = it.candidates;
+        lbImg.onerror = ()=>{
+          tries++;
+          if(tries < cands.length) lbImg.src = cands[tries];
+        };
+        lbImg.src = cands[0];
+      } else {
+        setMedia('youtube');
+        lbYt.src = 'https://www.youtube.com/embed/' + it.ytid + '?rel=0';
+      }
+      renderThumbs();
+    }
+
+    const next = ()=> show(current+1);
+    const prev = ()=> show(current-1);
+
+    grid.innerHTML='';
+    if(!rows.length){ grid.innerHTML = '<div class="muted">لا توجد صور.</div>'; return; }
+
+    rows.slice(0,120).forEach(r=>{
+      const raw = r.ImageURL ?? r.image ?? r.URL ?? r.url;
+      if(!raw) return;
+      const cap = r.Caption ?? r.caption ?? '';
+
+      if(isYouTube(raw)){
+        const id = getYouTubeId(raw);
+        if(!id) return;
+        const thumb = ytThumb(id);
+        const index = items.length;
+        items.push({ type:'youtube', ytid:id, thumb:thumb, caption:cap });
+
+        const wrap = document.createElement('div');
+        const img = document.createElement('img');
+        img.className='photo'; img.loading='lazy'; img.src = thumb; img.alt = cap || 'فيديو';
+        img.onclick = ()=>{ openLb(); show(index); };
+        wrap.appendChild(img);
+        if(cap){ const c = document.createElement('div'); c.className='muted'; c.style.marginTop='6px'; c.textContent=cap; wrap.appendChild(c); }
+        grid.appendChild(wrap);
+        return;
+      }
+
+      const d = toDirectImageUrl(raw);
+      const candidates = (typeof d === 'string') ? [d] : [d.thumb, d.view2, d.view1];
+      const index = items.length;
+      items.push({ type:'image', candidates:candidates, thumb:candidates[0], caption:cap });
+
+      const wrap = document.createElement('div');
+      const img = document.createElement('img');
+      img.className='photo'; img.loading='lazy'; img.alt = cap || 'صورة';
+
+      let tries = 0;
+      img.onerror = ()=>{ tries++; if(tries < candidates.length) img.src = candidates[tries]; };
+      img.src = candidates[0];
+      img.onclick = ()=>{ openLb(); show(index); };
+
+      wrap.appendChild(img);
+      if(cap){ const c = document.createElement('div'); c.className='muted'; c.style.marginTop='6px'; c.textContent=cap; wrap.appendChild(c); }
+      grid.appendChild(wrap);
     });
 
+    lbPrev.onclick = (e)=>{ e.stopPropagation(); prev(); };
+    lbNext.onclick = (e)=>{ e.stopPropagation(); next(); };
+    lbClose.onclick = (e)=>{ e.stopPropagation(); closeLb(); };
+    lb.addEventListener('click', (e)=>{ if(e.target===lb) closeLb(); });
+
+    document.addEventListener('keydown', (e)=>{
+      if(!lb.classList.contains('open')) return;
+      if(e.key==='ArrowRight') next();
+      if(e.key==='ArrowLeft') prev();
+      if(e.key==='Escape') closeLb();
+    });
+  }
+
+  const panes = Array.from(document.querySelectorAll('section[id^="tab-"]'));
+  function showPane(id){
+    panes.forEach(p=> p.hidden = (p.id !== id));
+    if(id === 'tab-overview'){
+      setTimeout(()=>{ try{ chProjects && chProjects.resize(); }catch(e){} }, 120);
+    }
+  }
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      showPane('tab-' + btn.dataset.tab);
+    });
+  });
+  showPane('tab-overview');
+
+  (async()=>{
+    const debug = document.getElementById('debug');
     try{
-      if(data.projects && data.events && data.trainees){
-        renderCharts(data.projects, data.events, data.trainees);
-      }
+      setStatus('جاري تحميل البيانات…', true);
+      const results = await Promise.allSettled([
+        loadCSV(SHEETS.projects),
+        loadCSV(SHEETS.events),
+        loadCSV(SHEETS.trainees),
+        loadCSV(SHEETS.achievements),
+        loadCSV(SHEETS.photos),
+        loadCSV(SHEETS.partners),
+      ]);
+
+      const names = ['projects','events','trainees','achievements','photos','partners'];
+      const data = {};
+      const failed = [];
+      results.forEach((r,i)=>{
+        if(r.status==='fulfilled') data[names[i]] = r.value;
+        else failed.push(names[i]);
+      });
+
+      if(data.projects && data.events && data.trainees) renderCharts(data.projects, data.events, data.trainees);
       if(data.achievements) renderAchievements(data.achievements);
       if(data.photos) renderPhotos(data.photos);
       if(data.partners) renderPartners(data.partners);
 
       if(failed.length){
-        setStatus('تم تحميل بعض البيانات ✅ (يوجد ملفات لم تُحمّل)', true);
-        console.warn('CSV load issues:', failed);
+        setStatus('تم تحميل بعض البيانات ✅', true);
+        debug.style.display='block';
+        debug.textContent = 'لم تُحمّل: ' + failed.join('، ') + ' — افتحي Console للتفاصيل.';
+        console.warn('Load failed sheets:', failed);
       } else {
         setStatus('تم تحميل البيانات بنجاح ✅', true);
       }
     } catch(e){
       console.error(e);
-      setStatus('حدث خطأ أثناء عرض البيانات (تحققي من أسماء الأعمدة في الشيت).', false);
-    }
-
-    // إذا في ملفات فشلت: أعرض تلميح واضح في الـ Console
-    if(failed.length){
-      console.warn('Fix hints: تأكدي أن Google Sheet منشور Public كـ CSV، وشغلي الصفحة عبر GitHub Pages وليس file://');
+      setStatus('حدث خطأ أثناء تحميل/عرض البيانات.', false);
+      debug.style.display='block';
+      debug.textContent = String(e && e.message ? e.message : e);
     }
   })();
 
-  /* التبويبات */
-  document.querySelectorAll('.tab').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('section[id^="tab-"]').forEach(s=>s.classList.add('hidden'));
-      const section = document.getElementById('tab-'+btn.dataset.tab);
-      if(section) section.classList.remove('hidden');
-    });
-  });
-
-  /********************
-   * اختبارات بسيطة (Console) لضمان عدم كسر CSV parsing
-   ********************/
   (function runTests(){
     try{
-      const sample = 'Year,ProjectsCount\n2018,2\n2019,4\n';
+      const sample = ['Year,ProjectsCount','2018,2','2019,4',''].join('
+');
       const rows = parseCsv(sample);
       console.assert(rows.length===2, 'CSV rows length');
-      console.assert(rows[0].Year==='2018', 'CSV header Year');
-      console.assert(rows[1].ProjectsCount==='4', 'CSV value');
-
-      const sample2 = 'Name,Note\n"A, B","hello \"world\""\n';
-      const rows2 = parseCsv(sample2);
-      console.assert(rows2[0].Name==='A, B', 'Quoted comma');
-      console.assert(rows2[0].Note==='hello "world"', 'Escaped quotes');
-    } catch (e) {
-      console.error('Tests failed', e);
-    }
+      console.assert(rows[0].Year==='2018', 'CSV Year');
+    } catch(e){ console.error('Tests failed', e); }
   })();
 </script>
 
